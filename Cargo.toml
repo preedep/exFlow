@@ -9,15 +9,21 @@ edition = "2021"
 [dependencies]
 azure_core = { version = "0.15" , optional = true }
 azure_identity = { version = "0.15" , optional = true }
+serde = {version = "1.0" , optional = true}
+serde_qs = {version = "0.12" , optional = true}
+
+pretty_env_logger = "0.5"
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
+log = { version = "0.4", features = [] }
 
 [features]
-exflow_runtime_required = ["azure_core", "azure_identity"]
+exflow_runtime_required = ["azure_core", "azure_identity","serde", "serde_qs"]
 
 [[bin]]
 name = "exflow_runtime"
 path = "src/main_exflow_runtime.rs"
 required-features = ["exflow_runtime_required"]
+
 
 [[bin]]
 name = "exflow_service"
