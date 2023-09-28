@@ -1,4 +1,5 @@
+use azure_identity::DefaultAzureCredential;
 
 pub async fn test() {
-    println!("Hello, world! Azure!");
+    let credential = DefaultAzureCredential::default();
 }
