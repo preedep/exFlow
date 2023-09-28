@@ -44,7 +44,19 @@ impl PipelineCreateRunParams {
             start_from_failure: None,
         }
     }
+    pub fn to_query_string(&self) -> String {
+        serde_qs::to_string(self).unwrap_or("".to_string())
+    }
 }
 pub async fn test() {
     let credential = DefaultAzureCredential::default();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_pipeline_crete_run_query_string() {
+
+    }
 }
