@@ -4,5 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "exflow_runtime"
+path = "src/main_exflow_runtime.rs"
+
+[[bin]]
+name = "exflow_service"
+path = "src/main_exflow_service.rs"
 
 [dependencies]
