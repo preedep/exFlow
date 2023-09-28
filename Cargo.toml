@@ -4,12 +4,22 @@ version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+[dependencies]
+azure_core = { version = "0.15" , optional = true }
+azure_identity = { version = "0.15" , optional = true }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
+
+
+[features]
+exflow_runtime_required = ["azure_core", "azure_identity"]
+
 [[bin]]
 name = "exflow_runtime"
 path = "src/main_exflow_runtime.rs"
+required-features = ["exflow_runtime_required"]
 
 [[bin]]
 name = "exflow_service"
 path = "src/main_exflow_service.rs"
-
-[dependencies]
