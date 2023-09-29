@@ -19,7 +19,7 @@ pub async fn adf_pipelines_get(
 ) -> ADFResult<ADFPipelineRunResponse> {
     let credential = DefaultAzureCredential::default();
     let response = credential.get_token(AZURE_RES_REST_API_URL).await.unwrap();
-    debug!("Access token : {:#?}", response);
+    //debug!("Access token : {:#?}", response);
     let get_url = ADFPipelineParams::new(
         subscription_id.to_string(),
         resource_group_name.to_string(),
@@ -38,7 +38,7 @@ pub async fn adf_pipelines_get(
     return match response {
         Ok(r) => {
             if r.status() == http::StatusCode::OK {
-                debug!("ADF Create Run Success");
+                //debug!("ADF Create Run Success  : {:#?}", r);
                 Ok(r.json::<ADFPipelineRunResponse>().await.unwrap())
             } else {
                 error!("ADF Create Run Failed");
@@ -65,7 +65,7 @@ pub async fn adf_pipelines_run(
 ) -> ADFResult<ADFCreateRunResponse> {
     let credential = DefaultAzureCredential::default();
     let response = credential.get_token(AZURE_RES_REST_API_URL).await.unwrap();
-    debug!("Access token : {:#?}", response);
+    //debug!("Access token : {:#?}", response);
     let create_run = ADFPipelineParams::new(
         subscription_id.to_string(),
         resource_group_name.to_string(),

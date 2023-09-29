@@ -1,2 +1,2 @@
 pub mod azure;
-mod entities;
+pub mod entities;
