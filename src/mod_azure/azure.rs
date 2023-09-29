@@ -1,3 +1,7 @@
+use std::fmt::{Display, Formatter};
+use std::future::Future;
+use std::io::SeekFrom::Start;
+use std::process::Output;
 use azure_core::auth::TokenCredential;
 use azure_identity::DefaultAzureCredential;
 use log::{debug, error};
@@ -38,6 +42,46 @@ pub struct ADFCreateRunResponse {
     #[serde(rename = "runId")]
     pub run_id: String,
 }
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ADFCloudError {
+    #[serde(rename = "code")]
+    pub error_code: Option<String>,
+    #[serde(rename = "details")]
+    pub error_details : Option<Vec<ADFCloudError>>,
+    #[serde(rename = "message")]
+    pub error_message : Option<String>,
+    #[serde(rename = "target")]
+    pub error_target : Option<String>,
+}
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct AzureCloudError {
+    #[serde(rename = "error")]
+    error_cloud : Option<ADFCloudError>
+}
+impl Display for ADFCloudError{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#?}",self)
+    }
+}
+impl ADFCloudError {
+    fn new(code: &str,message: &str) -> Self {
+        ADFCloudError{
+            error_code: Some(code.to_string()),
+            error_details: None,
+            error_message: Some(message.to_string()),
+            error_target: None,
+        }
+    }
+}
+impl AzureCloudError {
+    fn new(code: &str,message: &str) -> Self {
+        AzureCloudError{
+            error_cloud: Some(ADFCloudError::new(code,message)),
+        }
+    }
+}
+type ADFResult<T> = Result<T,AzureCloudError>;
+
 impl ADFPipelineParams {
     pub fn new(
         factory_name: String,
@@ -100,11 +144,12 @@ impl ADFPipelineParams {
     }
 }
 pub async fn adf_pipelines_run(
-    factory_name: &str,
-    pipeline_name: &str,
-    resource_group_name: &str,
     subscription_id: &str,
-) {
+    resource_group_name: &str,
+    factory_name: &str,
+    pipeline_name: &str
+) -> ADFResult<ADFCreateRunResponse>
+{
     let credential = DefaultAzureCredential::default();
     let response = credential.get_token(AZURE_RES_REST_API_URL).await.unwrap();
     debug!("Access token : {:#?}", response);
@@ -119,23 +164,27 @@ pub async fn adf_pipelines_run(
         .header(
             "Authorization",
             format!("Bearer {}", response.token.secret()),
-        )
+        ).header("content-length", 0)
         .send()
         .await;
-    match response {
-        Ok(response) => {
-            let json_resp = response.json::<ADFCreateRunResponse>().await;
-            match json_resp {
-                Ok(response) => {
-                    debug!("{:#?}",response);
-                }
-                Err(error) => {
-                    error!("Error: {}", error);
-                }
+
+    return match response {
+
+        Ok(r) => {
+            if r.status() == http::StatusCode::OK {
+                debug!("ADF Create Run Success");
+                Ok(r.json::<ADFCreateRunResponse>().await.unwrap())
+            } else {
+                error!("ADF Create Run Failed");
+                Err(r.json::<AzureCloudError>().await.unwrap())
             }
         }
-        Err(error) => {
-            error!("Error: {}", error);
+        Err(e) => {
+            error!("ADF Create Run Failed : > {}",e);
+            let err = AzureCloudError::new(e.status().unwrap_or(
+                http::StatusCode::INTERNAL_SERVER_ERROR).as_str(),
+                               e.to_string().as_str());
+            Err(err)
         }
     }
 }
