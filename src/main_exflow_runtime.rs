@@ -1,5 +1,5 @@
-use log::{debug, error, info};
 use crate::mod_azure::azure::adf_pipelines_get;
+use log::{debug, error, info};
 
 mod mod_azure;
 
@@ -23,15 +23,20 @@ async fn main() {
     match res {
         Ok(x) => {
             debug!("{:#?}", x);
-            let res_status =
-                adf_pipelines_get(subscription_id,resource_group_name,factory_name,x.run_id.as_str()).await;
+            let res_status = adf_pipelines_get(
+                subscription_id,
+                resource_group_name,
+                factory_name,
+                x.run_id.as_str(),
+            )
+            .await;
 
             match res_status {
                 Ok(status) => {
                     debug!("{:#?}", status);
                 }
                 Err(er) => {
-                    error!("Get status error : {:#?}",er);
+                    error!("Get status error : {:#?}", er);
                 }
             }
         }
