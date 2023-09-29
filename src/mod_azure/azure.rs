@@ -1,12 +1,15 @@
+use azure_core::auth::TokenCredential;
 use azure_identity::DefaultAzureCredential;
-use log::debug;
+use log::{debug, error};
 use serde::{Deserialize, Serialize};
 
 const ADF_API_VERSION: &'static str = "2018-06-01";
-const ADF_REST_API_URL: &'static str = "https://management.azure.com/subscriptions";
+const AZURE_RES_REST_API_URL: &'static str = "https://management.azure.com";
+
+const ADF_REST_API_RUN_CREATE_URI: &'static str = "/createRun";
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct PipelineCreateRunParams {
+pub struct ADFPipelineParams {
     #[serde(rename = "factoryName")]
     pub factory_name: String,
     #[serde(rename = "pipelineName")]
@@ -15,11 +18,10 @@ pub struct PipelineCreateRunParams {
     pub resource_group_name: String,
     #[serde(rename = "subscriptionId")]
     pub subscription_id: String,
-
-    pub query_params: PipelineCreateRunParamsQueryString,
+    pub query_params: ADFPipelineParamsQueryString,
 }
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct PipelineCreateRunParamsQueryString {
+pub struct ADFPipelineParamsQueryString {
     #[serde(rename = "api-version")]
     pub api_version: String,
     #[serde(rename = "isRecovery")]
@@ -31,20 +33,24 @@ pub struct PipelineCreateRunParamsQueryString {
     #[serde(rename = "startFromFailure")]
     start_from_failure: Option<bool>,
 }
-
-impl PipelineCreateRunParams {
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ADFCreateRunResponse {
+    #[serde(rename = "runId")]
+    pub run_id: String,
+}
+impl ADFPipelineParams {
     pub fn new(
         factory_name: String,
         pipeline_name: String,
         resource_group_name: String,
         subscription_id: String,
     ) -> Self {
-        PipelineCreateRunParams {
+        ADFPipelineParams {
             factory_name,
             pipeline_name,
             resource_group_name,
             subscription_id,
-            query_params: PipelineCreateRunParamsQueryString {
+            query_params: ADFPipelineParamsQueryString {
                 api_version: ADF_API_VERSION.to_string(),
                 is_recovery: None,
                 reference_pipeline_run_id: None,
@@ -69,36 +75,69 @@ impl PipelineCreateRunParams {
         self.query_params.start_from_failure = Some(start_from_failure);
         self.clone()
     }
-    pub fn to_query_string(&self) -> String {
-        //serde_urlencoded::to_string(self).unwrap_or("".to_string())
-        let url = format!("{:0}/{:1}/resourceGroups/{:2}/providers/Microsoft.DataFactory/factories/{:3}/pipelines/{:4}/createRun",
-                          ADF_REST_API_URL,
+    fn to_url(&self) -> String {
+        format!("{:0}/subscriptions/{:1}/resourceGroups/{:2}/providers/Microsoft.DataFactory/factories/{:3}/pipelines/{:4}",
+                AZURE_RES_REST_API_URL,
                           self.subscription_id,
                           self.resource_group_name,
                           self.factory_name,
-                          self.pipeline_name);
-
+                          self.pipeline_name)
+    }
+    fn to_run_create_url(&self) -> String {
+        let url = format!("{:0}{:1}", self.to_url(), ADF_REST_API_RUN_CREATE_URI);
         format!(
-            "{}?{}",
+            "{:0}?{:1}",
             url,
             serde_qs::to_string(&self.query_params).unwrap()
         )
     }
+    fn to_get_status_url(&self) -> String {
+        format!(
+            "{:0}?{:1}",
+            self.to_url(),
+            serde_qs::to_string(&self.query_params).unwrap()
+        )
+    }
 }
-pub async fn test() {
+pub async fn adf_pipelines_run(
+    factory_name: &str,
+    pipeline_name: &str,
+    resource_group_name: &str,
+    subscription_id: &str,
+) {
     let credential = DefaultAzureCredential::default();
-    let mut params = PipelineCreateRunParams::new(
-        "test-factory".to_string(),
-        "test-pipeline".to_string(),
-        "test-rg".to_string(),
-        "test-subscription".to_string(),
-    )
-    .with_is_recovery(true)
-    .with_reference_pipeline_run_id("xxxx".to_string())
-    .with_start_activity_name("yyyy".to_string())
-    .with_start_from_failure(false);
-
-    debug!("{}", params.to_query_string());
+    let response = credential.get_token(AZURE_RES_REST_API_URL).await.unwrap();
+    debug!("Access token : {:#?}", response);
+    let create_run = ADFPipelineParams::new(
+        factory_name.to_string(),
+        pipeline_name.to_string(),
+        resource_group_name.to_string(),
+        subscription_id.to_string(),
+    );
+    let response = reqwest::Client::new()
+        .post(create_run.to_run_create_url())
+        .header(
+            "Authorization",
+            format!("Bearer {}", response.token.secret()),
+        )
+        .send()
+        .await;
+    match response {
+        Ok(response) => {
+            let json_resp = response.json::<ADFCreateRunResponse>().await;
+            match json_resp {
+                Ok(response) => {
+                    debug!("{:#?}",response);
+                }
+                Err(error) => {
+                    error!("Error: {}", error);
+                }
+            }
+        }
+        Err(error) => {
+            error!("Error: {}", error);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -107,7 +146,7 @@ mod tests {
     use log::debug;
     #[test]
     fn test_pipeline_crete_run_query_string() {
-        let params = PipelineCreateRunParams::new(
+        let params = ADFPipelineParams::new(
             "factory_name".to_string(),
             "pipeline_name".to_string(),
             "resource_group_name".to_string(),
