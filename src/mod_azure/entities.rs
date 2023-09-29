@@ -7,6 +7,22 @@ pub const AZURE_RES_REST_API_URL: &'static str = "https://management.azure.com";
 
 const ADF_REST_API_RUN_CREATE_URI: &'static str = "createRun";
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum ADFPipelineRunStatus {
+    #[serde(rename = "Queued")]
+    Queued,
+    #[serde(rename = "InProgress")]
+    InProgress,
+    #[serde(rename = "Succeeded")]
+    Succeeded,
+    #[serde(rename = "Failed")]
+    Failed,
+    #[serde(rename = "Canceling")]
+    Canceling,
+    #[serde(rename = "Cancelled")]
+    Cancelled
+}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ADFPipelineParams {
     #[serde(rename = "factoryName")]
@@ -58,7 +74,7 @@ pub struct ADFPipelineRunResponse {
     #[serde(rename = "durationInMs")]
     pub duration_in_ms: Option<i64>,
     #[serde(rename = "status")]
-    pub status: Option<String>,
+    pub status: Option<ADFPipelineRunStatus>,
     #[serde(rename = "message")]
     pub message: Option<String>,
     #[serde(rename = "lastUpdated")]
@@ -71,6 +87,12 @@ pub struct ADFPipelineRuneInvokedBy {
     pub id: Option<String>,
     #[serde(rename = "name")]
     pub name: Option<String>,
+    #[serde(rename = "invokedByType")]
+    pub invoked_by_type : Option<String>,
+    #[serde(rename = "pipelineName")]
+    pub pipeline_name : Option<String>,
+    #[serde(rename = "pipelineRunId")]
+    pub pipeline_run_id : Option<String>
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
