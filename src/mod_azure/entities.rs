@@ -20,7 +20,7 @@ pub enum ADFPipelineRunStatus {
     #[serde(rename = "Canceling")]
     Canceling,
     #[serde(rename = "Cancelled")]
-    Cancelled
+    Cancelled,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -88,11 +88,11 @@ pub struct ADFPipelineRuneInvokedBy {
     #[serde(rename = "name")]
     pub name: Option<String>,
     #[serde(rename = "invokedByType")]
-    pub invoked_by_type : Option<String>,
+    pub invoked_by_type: Option<String>,
     #[serde(rename = "pipelineName")]
-    pub pipeline_name : Option<String>,
+    pub pipeline_name: Option<String>,
     #[serde(rename = "pipelineRunId")]
-    pub pipeline_run_id : Option<String>
+    pub pipeline_run_id: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
