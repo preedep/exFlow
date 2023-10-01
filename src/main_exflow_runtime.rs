@@ -18,7 +18,8 @@ async fn main() -> std::io::Result<()> {
     let args = RuntimeArgs::parse();
     match args.command {
         None => {
-            debug!("ExFlow Runtime starting....");
+            info!("ExFlow Runtime starting....");
+            info!("Registering.. to exFlow service");
             HttpServer::new(|| {
                 App::new()
                     .wrap(Logger::default())
@@ -32,7 +33,7 @@ async fn main() -> std::io::Result<()> {
                 .bind(("0.0.0.0",8082))?.run().await
         }
         Some(command) => {
-
+            info!("Run with CLI");
             Ok(())
         }
     }
