@@ -1,7 +1,14 @@
 use clap::{Parser, Subcommand};
 /// Simple program to greet a person
 #[derive(Parser)]
-#[command(author = "Preedee Ponchevin <preedee.digital@gmail.com>", version = "0.1.0", about, long_about = None)]
+#[command(bin_name = "exflow_runtime")]
+#[command(name = "exFlow Runtime")]
+#[command(author = "Preedee Ponchevin <preedee.digital@gmail.com>")]
+#[command(version = "1.0")]
+#[command(about = "exFlow (Extended) Flow , Runtime for integration with ADF , Step Function , etc.")]
+#[command(
+help_template = "{author-with-newline} {about-section}Version: {version} \n {usage-heading} {usage} \n {all-args} {tab}"
+)]
 pub struct RuntimeArgs {
     /// exFlow Service Endpoint
     #[arg(short, long)]
