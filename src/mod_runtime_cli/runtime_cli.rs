@@ -12,14 +12,14 @@ help_template = "{author-with-newline} {about-section}Version: {version} \n {usa
 pub struct RuntimeArgs {
     /// exFlow Service Endpoint
     #[arg(short, long)]
-    exflow_service_endpoint: String,
+    pub exflow_service_endpoint: String,
 
     #[command(subcommand)]
-    command: Option<Commands>,
+    pub command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
-enum Commands {
+pub enum Commands {
     /// Run runtime with specific resource
     Cli {
         /// Subscription Id
