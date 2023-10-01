@@ -4,7 +4,7 @@ use actix_web::{middleware, web, App, HttpServer};
 use clap::Parser;
 
 use log::{debug, error, info};
-use crate::mod_runtime_cli::runtime_cli::{Commands, RuntimeArgs};
+use crate::mod_runtime_cli::runtime_cli::{Commands, run_process, RuntimeArgs};
 
 
 mod mod_azure;
@@ -32,8 +32,9 @@ async fn main() -> std::io::Result<()> {
             }).workers(10)
                 .bind(("0.0.0.0",8082))?.run().await
         }
-        Some(command) => {
+        Some(c) => {
             info!("Run with CLI");
+            run_process(&c).await;
             Ok(())
         }
     }

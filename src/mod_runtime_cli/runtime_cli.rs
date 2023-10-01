@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{command, Parser, Subcommand};
 /// Simple program to greet a person
 #[derive(Parser)]
 #[command(bin_name = "exflow_runtime")]
@@ -11,7 +11,7 @@ help_template = "{author-with-newline} {about-section}Version: {version} \n {usa
 )]
 pub struct RuntimeArgs {
     /// exFlow Service Endpoint
-    #[arg(short, long)]
+    #[arg(short, long, required = false)]
     pub exflow_service_endpoint: String,
 
     #[command(subcommand)]
@@ -40,3 +40,6 @@ pub enum Commands {
     },
 }
 
+pub async fn run_process(command: &Commands) {
+
+}
