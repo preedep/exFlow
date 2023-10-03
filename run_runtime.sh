@@ -1,2 +1,1 @@
-RUST_LOG=debug cargo run --bin exflow_runtime --features=exflow_runtime_required
-
+RUST_LOG=debug cargo run  --bin exflow_runtime --features=exflow_runtime_required   -- --exflow-service-endpoint 10.0.0.1

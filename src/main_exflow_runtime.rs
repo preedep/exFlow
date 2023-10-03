@@ -4,7 +4,7 @@ use actix_web::{middleware, web, App, HttpServer};
 use clap::Parser;
 
 use log::{debug, error, info};
-use crate::mod_runtime_cli::runtime_cli::{Commands, run_process, RuntimeArgs};
+use crate::mod_runtime_cli::runtime_cli::{Commands, ExFlowArgs, run_process };
 
 
 mod mod_azure;
@@ -15,9 +15,19 @@ mod mod_runtime_cli;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
-    let args = RuntimeArgs::parse();
-    match args.command {
+    let args = ExFlowArgs::parse();
+
+    match &args.command {
         None => {
+            println!("Exflow runtime support 2 modes [CLI or Runtime] , Please use --help for more information");
+            Ok(())
+        }
+        Some(Commands::Cli {subscription_id,resource_group_name,factory_name,pipeline_name }) => {
+            info!("Run with CLI arguments");
+            Ok(())
+        }
+        Some(Commands::Runtime {exflow_service_endpoint}) => {
+            info!("Run with Web Server mode");
             info!("ExFlow Runtime starting....");
             info!("Registering.. to exFlow service");
             HttpServer::new(|| {
@@ -31,11 +41,6 @@ async fn main() -> std::io::Result<()> {
                     )
             }).workers(10)
                 .bind(("0.0.0.0",8082))?.run().await
-        }
-        Some(c) => {
-            info!("Run with CLI");
-            run_process(&c).await;
-            Ok(())
         }
     }
 }
