@@ -1,7 +1,7 @@
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run};
 use crate::mod_azure::entities::{ADFPipelineRunStatus, ADFResult};
 use clap::{command, Parser, Subcommand};
-use log::{error, info};
+use log::{debug, error, info};
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -73,7 +73,6 @@ pub async fn run_process(
             let s = string_to_static_str(subscription_id);
             let r = string_to_static_str(resource_group_name);
             let f = string_to_static_str(factory_name);
-
             let handle = tokio::spawn(async move {
                 loop {
                     sleep(Duration::from_secs(3));
@@ -84,8 +83,11 @@ pub async fn run_process(
                                 ADFPipelineRunStatus::Queued | ADFPipelineRunStatus::InProgress => {
                                     info!("{:?}", r);
                                 }
-                                ADFPipelineRunStatus::Succeeded
-                                | ADFPipelineRunStatus::Failed
+                                ADFPipelineRunStatus::Succeeded => {
+                                    info!("{:?}", r);
+                                    break;
+                                }
+                                ADFPipelineRunStatus::Failed
                                 | ADFPipelineRunStatus::Canceling
                                 | ADFPipelineRunStatus::Cancelled => {
                                     error!("{:?}", r);
@@ -99,7 +101,7 @@ pub async fn run_process(
                         }
                     }
                 }
-            });
+            }).await;
         }
         Err(e) => {
             error!("{:?}", e);
