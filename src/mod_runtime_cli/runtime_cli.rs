@@ -1,14 +1,18 @@
+use crate::mod_azure::azure::adf_pipelines_run;
 use clap::{command, Parser, Subcommand};
+
 /// Simple program to greet a person
 #[derive(Parser)]
 #[command(bin_name = "exflow_runtime")]
 #[command(name = "exFlow Runtime")]
 #[command(author = "Preedee Ponchevin <preedee.digital@gmail.com>")]
 #[command(version = "1.0")]
-#[command(about = "exFlow (Extended) Flow , Runtime for integration with ADF , Step Function , etc.")]
+#[command(
+    about = "exFlow (Extended) Flow , Runtime for integration with ADF , Step Function , etc."
+)]
 #[command(propagate_version = true)]
 #[command(
-help_template = "{author-with-newline} {about-section}Version: {version} \n {usage-heading} {usage} \n {all-args} {tab}"
+    help_template = "{author-with-newline} {about-section}Version: {version} \n {usage-heading} {usage} \n {all-args} {tab}"
 )]
 pub struct ExFlowArgs {
     #[command(subcommand)]
@@ -43,6 +47,17 @@ pub enum Commands {
     },
 }
 
-pub async fn run_process(command: &Commands) {
-
+pub async fn run_process(
+    subscription_id: &str,
+    resource_group_name: &str,
+    factory_name: &str,
+    pipeline_name: &str,
+) {
+    let res_run = adf_pipelines_run(
+        subscription_id,
+        resource_group_name,
+        factory_name,
+        pipeline_name,
+    )
+    .await;
 }
