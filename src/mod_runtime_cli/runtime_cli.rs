@@ -12,11 +12,11 @@ use std::time::Duration;
 #[command(author = "Preedee Ponchevin <preedee.digital@gmail.com>")]
 #[command(version = "1.0")]
 #[command(
-    about = "exFlow (Extended) Flow , Runtime for integration with ADF , Step Function , etc."
+    about = "ExFlow (Extended) Flow , Runtime for integration with ADF , Step Function , etc."
 )]
 #[command(propagate_version = true)]
 #[command(
-    help_template = "{author-with-newline} {about-section}Version: {version} \n {usage-heading} {usage} \n {all-args} {tab}"
+    help_template = "{about-section}Version: {version} \n {author} \n\n {usage-heading} {usage} \n {all-args} {tab}"
 )]
 pub struct ExFlowArgs {
     #[command(subcommand)]
@@ -101,7 +101,8 @@ pub async fn run_process(
                         }
                     }
                 }
-            }).await;
+            })
+            .await;
         }
         Err(e) => {
             error!("{:?}", e);
