@@ -28,10 +28,10 @@ async fn main() -> std::io::Result<()> {
         }) => {
             info!("Run with CLI arguments");
             run_process(
-                subscription_id.as_str(),
-                resource_group_name.as_str(),
-                factory_name.as_str(),
-                pipeline_name.as_str(),
+                subscription_id,
+                resource_group_name,
+                factory_name,
+                pipeline_name,
             )
             .await;
             Ok(())

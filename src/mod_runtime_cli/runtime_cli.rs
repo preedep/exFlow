@@ -1,5 +1,9 @@
-use crate::mod_azure::azure::adf_pipelines_run;
+use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run};
+use crate::mod_azure::entities::{ADFPipelineRunStatus, ADFResult};
 use clap::{command, Parser, Subcommand};
+use log::{error, info};
+use std::thread::sleep;
+use std::time::Duration;
 
 /// Simple program to greet a person
 #[derive(Parser)]
@@ -47,17 +51,58 @@ pub enum Commands {
     },
 }
 
+fn string_to_static_str(s: &String) -> &'static str {
+    Box::leak(s.clone().into_boxed_str())
+}
 pub async fn run_process(
-    subscription_id: &str,
-    resource_group_name: &str,
-    factory_name: &str,
-    pipeline_name: &str,
+    subscription_id: &String,
+    resource_group_name: &String,
+    factory_name: &String,
+    pipeline_name: &String,
 ) {
     let res_run = adf_pipelines_run(
-        subscription_id,
-        resource_group_name,
-        factory_name,
-        pipeline_name,
+        subscription_id.as_str(),
+        resource_group_name.as_str(),
+        factory_name.as_str(),
+        pipeline_name.as_str(),
     )
     .await;
+
+    match res_run {
+        Ok(res) => {
+            let s = string_to_static_str(subscription_id);
+            let r = string_to_static_str(resource_group_name);
+            let f = string_to_static_str(factory_name);
+
+            let handle = tokio::spawn(async move {
+                loop {
+                    sleep(Duration::from_secs(3));
+                    let res_get = adf_pipelines_get(s, r, f, res.run_id.as_str()).await;
+                    match res_get {
+                        Ok(r) => {
+                            match r.to_owned().status.unwrap_or(ADFPipelineRunStatus::Failed) {
+                                ADFPipelineRunStatus::Queued | ADFPipelineRunStatus::InProgress => {
+                                    info!("{:?}", r);
+                                }
+                                ADFPipelineRunStatus::Succeeded
+                                | ADFPipelineRunStatus::Failed
+                                | ADFPipelineRunStatus::Canceling
+                                | ADFPipelineRunStatus::Cancelled => {
+                                    error!("{:?}", r);
+                                    break;
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            error!("{:?}", e);
+                            break;
+                        }
+                    }
+                }
+            });
+        }
+        Err(e) => {
+            error!("{:?}", e);
+        }
+    }
 }
