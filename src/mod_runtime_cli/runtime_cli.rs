@@ -110,11 +110,11 @@ pub async fn run_process(
                                 match r.to_owned().status.unwrap_or(ADFPipelineRunStatus::Failed) {
                                     ADFPipelineRunStatus::Queued
                                     | ADFPipelineRunStatus::InProgress => {
-                                        info!("{:?}", r);
+                                        info!("{:#?}", r);
                                         true
                                     }
                                     ADFPipelineRunStatus::Succeeded => {
-                                        info!("{:?}", r);
+                                        info!("{:#?}", r);
                                         //finish the pipeline
                                         false
                                     }
@@ -122,13 +122,13 @@ pub async fn run_process(
                                     | ADFPipelineRunStatus::Canceling
                                     | ADFPipelineRunStatus::Cancelled => {
                                         //finish the pipeline with error
-                                        error!("{:?}", r);
+                                        error!("{:#?}", r);
                                         false
                                     }
                                 }
                             }
                             Err(e) => {
-                                error!("{:?}", e);
+                                error!("{:#?}", e);
                                 false
                             }
                         };
