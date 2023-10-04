@@ -15,6 +15,7 @@ async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
     let args = ExFlowArgs::parse();
 
+
     match &args.command {
         None => {
             println!("Exflow runtime support 2 modes [CLI or Runtime] , Please use --help for more information");
@@ -27,11 +28,13 @@ async fn main() -> std::io::Result<()> {
             pipeline_name,
         }) => {
             info!("Run with CLI arguments");
+
             let run_process_result = run_process(
                 subscription_id,
                 resource_group_name,
                 factory_name,
                 pipeline_name,
+                3u64,
             )
             .await;
             match run_process_result {

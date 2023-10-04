@@ -76,6 +76,7 @@ pub async fn run_process(
     resource_group_name: &String,
     factory_name: &String,
     pipeline_name: &String,
+    waiting_sec_time: u64,
 ) -> RunProcessResult<RunProcessJoinHandle> {
     let res_run = adf_pipelines_run(
         subscription_id.as_str(),
@@ -91,6 +92,7 @@ pub async fn run_process(
             let r = string_to_static_str(resource_group_name);
             let f = string_to_static_str(factory_name);
             let run_id = string_to_static_str(&res.run_id);
+
             let sender = thread::spawn(move || {
                 let rt = tokio::runtime::Builder::new_multi_thread()
                     .enable_all()
@@ -98,7 +100,7 @@ pub async fn run_process(
                     .unwrap();
                 rt.block_on(async {
                     loop {
-                        sleep(Duration::from_secs(3));
+                        sleep(Duration::from_secs(waiting_sec_time));
                         let res_get = adf_pipelines_get(s,
                                                         r,
                                                         f,
