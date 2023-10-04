@@ -100,7 +100,8 @@ pub async fn run_process(
                     .unwrap();
                 rt.block_on(async {
                     loop {
-                        sleep(Duration::from_secs(waiting_sec_time));
+                        async_std::task::sleep(Duration::from_secs(waiting_sec_time)).await;
+                        //sleep(Duration::from_secs(waiting_sec_time));
                         let res_get = adf_pipelines_get(s,
                                                         r,
                                                         f,
