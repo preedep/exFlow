@@ -1,5 +1,5 @@
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run};
-use crate::mod_azure::entities::{ADFPipelineRunStatus, ADFResult};
+use crate::mod_azure::entities::ADFPipelineRunStatus;
 use clap::{command, Parser, Subcommand};
 use log::{debug, error, info};
 use std::fmt::{Display, Formatter};
