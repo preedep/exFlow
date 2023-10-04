@@ -109,7 +109,7 @@ pub struct ADFCloudError {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AzureCloudError {
     #[serde(rename = "error")]
-    error_cloud: Option<ADFCloudError>,
+    pub error_cloud: Option<ADFCloudError>,
 }
 impl Display for ADFCloudError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
