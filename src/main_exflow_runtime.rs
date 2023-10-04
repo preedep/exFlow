@@ -3,7 +3,7 @@ use actix_web::middleware::Logger;
 use actix_web::{middleware, web, App, HttpServer};
 use clap::Parser;
 
-use crate::mod_runtime_cli::runtime_cli::{run_process, Commands, ExFlowArgs};
+use crate::mod_runtime_cli::runtime_cli::{run_process, Commands, ExFlowArgs, RunProcessResult};
 use log::{debug, error, info};
 
 mod mod_azure;
@@ -27,13 +27,22 @@ async fn main() -> std::io::Result<()> {
             pipeline_name,
         }) => {
             info!("Run with CLI arguments");
-            run_process(
+            let run_process_result = run_process(
                 subscription_id,
                 resource_group_name,
                 factory_name,
                 pipeline_name,
             )
             .await;
+            match run_process_result {
+                Ok(r) => {
+                    info!("Waiting for process [{}] to finish", r.run_id);
+                    r.join_handle.join().expect("Failed to join");
+                }
+                Err(e) => {
+                    error!("Failed to run process {:?}", e);
+                }
+            }
             Ok(())
         }
         Some(Commands::Runtime {

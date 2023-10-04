@@ -2,8 +2,11 @@ use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run};
 use crate::mod_azure::entities::{ADFPipelineRunStatus, ADFResult};
 use clap::{command, Parser, Subcommand};
 use log::{debug, error, info};
-use std::thread::sleep;
+use std::fmt::{Display, Formatter};
+use std::thread;
+use std::thread::{sleep, JoinHandle};
 use std::time::Duration;
+use tokio::runtime::Runtime;
 
 /// Simple program to greet a person
 #[derive(Parser)]
@@ -51,6 +54,20 @@ pub enum Commands {
     },
 }
 
+#[derive(Debug)]
+pub struct RunProcessError {}
+impl Display for RunProcessError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#?}", self)
+    }
+}
+
+pub struct RunProcessJoinHandle {
+    pub run_id: String,
+    pub join_handle: JoinHandle<()>,
+}
+pub type RunProcessResult<T> = Result<T, RunProcessError>;
+
 fn string_to_static_str(s: &String) -> &'static str {
     Box::leak(s.clone().into_boxed_str())
 }
@@ -59,7 +76,7 @@ pub async fn run_process(
     resource_group_name: &String,
     factory_name: &String,
     pipeline_name: &String,
-) {
+) -> RunProcessResult<RunProcessJoinHandle> {
     let res_run = adf_pipelines_run(
         subscription_id.as_str(),
         resource_group_name.as_str(),
@@ -73,39 +90,63 @@ pub async fn run_process(
             let s = string_to_static_str(subscription_id);
             let r = string_to_static_str(resource_group_name);
             let f = string_to_static_str(factory_name);
-            let handle = tokio::spawn(async move {
-                loop {
-                    sleep(Duration::from_secs(3));
-                    let res_get = adf_pipelines_get(s, r, f, res.run_id.as_str()).await;
-                    match res_get {
-                        Ok(r) => {
-                            match r.to_owned().status.unwrap_or(ADFPipelineRunStatus::Failed) {
-                                ADFPipelineRunStatus::Queued | ADFPipelineRunStatus::InProgress => {
-                                    info!("{:?}", r);
-                                }
-                                ADFPipelineRunStatus::Succeeded => {
-                                    info!("{:?}", r);
-                                    break;
-                                }
-                                ADFPipelineRunStatus::Failed
-                                | ADFPipelineRunStatus::Canceling
-                                | ADFPipelineRunStatus::Cancelled => {
-                                    error!("{:?}", r);
-                                    break;
+            let run_id = string_to_static_str(&res.run_id);
+            let sender = thread::spawn(move || {
+                let rt = tokio::runtime::Builder::new_multi_thread()
+                    .enable_all()
+                    .build()
+                    .unwrap();
+                rt.block_on(async {
+                    loop {
+                        sleep(Duration::from_secs(3));
+                        let res_get = adf_pipelines_get(s,
+                                                        r,
+                                                        f,
+                                                        run_id,
+                        ).await;
+
+                        let is_running = match res_get {
+                            Ok(r) => {
+                                match r.to_owned().status.unwrap_or(ADFPipelineRunStatus::Failed) {
+                                    ADFPipelineRunStatus::Queued
+                                    | ADFPipelineRunStatus::InProgress => {
+                                        info!("{:?}", r);
+                                        true
+                                    }
+                                    ADFPipelineRunStatus::Succeeded => {
+                                        info!("{:?}", r);
+                                        //finish the pipeline
+                                        false
+                                    }
+                                    ADFPipelineRunStatus::Failed
+                                    | ADFPipelineRunStatus::Canceling
+                                    | ADFPipelineRunStatus::Cancelled => {
+                                        //finish the pipeline with error
+                                        error!("{:?}", r);
+                                        false
+                                    }
                                 }
                             }
-                        }
-                        Err(e) => {
-                            error!("{:?}", e);
+                            Err(e) => {
+                                error!("{:?}", e);
+                                false
+                            }
+                        };
+                        if !is_running {
                             break;
                         }
                     }
-                }
-            })
-            .await;
+                });
+            });
+            let res_process = RunProcessJoinHandle {
+                run_id:run_id.to_string(),
+                join_handle: sender,
+            };
+            Ok(res_process)
         }
         Err(e) => {
             error!("{:?}", e);
+            Err(RunProcessError {})
         }
     }
 }
