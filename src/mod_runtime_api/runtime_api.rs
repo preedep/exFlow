@@ -1,4 +1,3 @@
-use crate::mod_azure::azure::adf_pipelines_run;
 use crate::mod_runtime_api::entities::PipelineRunRequest;
 use actix_web::{web, HttpResponse, Responder};
 
