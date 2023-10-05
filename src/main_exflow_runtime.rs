@@ -1,10 +1,13 @@
 use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
 use actix_web::middleware::Logger;
 use actix_web::{middleware, web, App, HttpServer};
+use actix_web_opentelemetry::RequestTracing;
 use clap::Parser;
 
 use crate::mod_runtime_cli::runtime_cli::{run_process, Commands, ExFlowArgs};
 use log::{debug, error, info};
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::Registry;
 
 mod mod_azure;
 mod mod_runtime_api;
@@ -49,16 +52,35 @@ async fn main() -> std::io::Result<()> {
         }
         Some(Commands::Runtime {
             exflow_service_endpoint,
+                 apm_connection_string,
         }) => {
             info!("Run with Web Server mode");
             info!("ExFlow Runtime starting....");
             info!("Registering.. to exFlow service");
+            ///
+            if apm_connection_string.len() > 0 {
+                debug!("APPLICATIONINSIGHTS_CON_STRING = {}",apm_connection_string);
+                let exporter = opentelemetry_application_insights::new_pipeline_from_connection_string(
+                    apm_connection_string
+                ).unwrap().with_client(
+                    reqwest::Client::new()
+                )
+                    .with_service_name("ExFlow-Runtime")
+                    .install_batch(opentelemetry::runtime::Tokio);
+
+                let telemetry = tracing_opentelemetry::layer().with_tracer(exporter);
+                let subscriber = Registry::default().with(telemetry);
+                tracing::subscriber::set_global_default(subscriber).expect("setting global default failed");
+            }
+            ////
             HttpServer::new(|| {
                 App::new()
+                    .wrap(middleware::DefaultHeaders::new().add(("ExFlow-Runtime-X-Version", "0.1")))
                     .wrap(Logger::default())
-                    .wrap(Logger::new("%a %{User-Agent}i"))
-                    .wrap(middleware::DefaultHeaders::new().add(("X-Version", "0.1")))
-                    .service(
+                    .wrap(Logger::new(
+                        r#"%a %t "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#,
+                    )).wrap(RequestTracing::new())
+                       .service(
                         web::scope("/api/v1")
                             .route("/run_pipeline", web::post().to(post_run_pipeline))
                             .route("/get_status", web::get().to(get_status_pipeline)),

@@ -32,6 +32,9 @@ pub enum Commands {
         /// exFlow Service Endpoint
         #[arg(short, long)]
         exflow_service_endpoint: String,
+        #[arg(short, long,required = false)]
+        apm_connection_string: String,
+
     },
     /// Run with specific resource
     Cli {
