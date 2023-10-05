@@ -4,7 +4,7 @@ use clap::{command, Parser, Subcommand};
 use log::{error, info};
 use std::fmt::{Display, Formatter};
 use std::thread;
-use std::thread::{JoinHandle};
+use std::thread::JoinHandle;
 use std::time::Duration;
 
 /// Simple program to greet a person
@@ -77,7 +77,6 @@ pub async fn run_process(
     pipeline_name: &String,
     waiting_sec_time: u64,
 ) -> RunProcessResult<RunProcessJoinHandle> {
-
     let access_token_response = get_azure_access_token_from(None).await.unwrap();
     let res_run = adf_pipelines_run(
         &access_token_response,
@@ -106,14 +105,11 @@ pub async fn run_process(
                         //sleep(Duration::from_secs(waiting_sec_time));
                         let access_token_response =
                             get_azure_access_token_from(Some(access_token_response.clone()))
-                                .await.unwrap();
+                                .await
+                                .unwrap();
 
                         let res_get =
-                            adf_pipelines_get(&access_token_response,
-                                              s,
-                                              r,
-                                              f,
-                                              run_id).await;
+                            adf_pipelines_get(&access_token_response, s, r, f, run_id).await;
 
                         let is_running = match res_get {
                             Ok(r) => {

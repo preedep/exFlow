@@ -2,6 +2,7 @@ use crate::mod_azure::entities::{
     ADFCreateRunResponse, ADFPipelineParams, ADFPipelineRunResponse, ADFResult,
     AzureAccessTokenResult, AzureCloudError, AZURE_RES_REST_API_URL,
 };
+use actix_web::body::MessageBody;
 use azure_core::auth::{TokenCredential, TokenResponse};
 use azure_identity::DefaultAzureCredential;
 use chrono::Utc;
@@ -9,7 +10,6 @@ use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::future::Future;
-use actix_web::body::MessageBody;
 
 pub async fn get_azure_access_token_from(
     access_token: Option<TokenResponse>,
@@ -18,7 +18,7 @@ pub async fn get_azure_access_token_from(
         None => {
             let credential = DefaultAzureCredential::default();
             let response = credential.get_token(AZURE_RES_REST_API_URL).await;
-           response
+            response
                 .map_err(|e| AzureCloudError { error_cloud: None })
                 .map(|r| r)
         }
