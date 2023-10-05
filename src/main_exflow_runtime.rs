@@ -3,7 +3,7 @@ use actix_web::middleware::Logger;
 use actix_web::{middleware, web, App, HttpServer};
 use clap::Parser;
 
-use crate::mod_runtime_cli::runtime_cli::{run_process, Commands, ExFlowArgs, RunProcessResult};
+use crate::mod_runtime_cli::runtime_cli::{run_process, Commands, ExFlowArgs};
 use log::{debug, error, info};
 
 mod mod_azure;
@@ -14,7 +14,6 @@ mod mod_runtime_cli;
 async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
     let args = ExFlowArgs::parse();
-
 
     match &args.command {
         None => {

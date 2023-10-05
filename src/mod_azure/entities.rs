@@ -134,6 +134,7 @@ impl AzureCloudError {
     }
 }
 pub type ADFResult<T> = Result<T, AzureCloudError>;
+pub type AzureAccessTokenResult<T> = Result<T, AzureCloudError>;
 
 impl ADFPipelineParams {
     pub fn new(subscription_id: String, resource_group_name: String, factory_name: String) -> Self {
