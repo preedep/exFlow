@@ -1,5 +1,5 @@
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
-use crate::mod_azure::entities::ADFPipelineRunStatus;
+use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
 use clap::{command, Parser, Subcommand};
 use log::{error, info};
 use std::fmt::{Display, Formatter};
@@ -70,6 +70,12 @@ pub struct RunProcessJoinHandle {
 }
 pub type RunProcessResult<T> = Result<T, RunProcessError>;
 
+pub trait RunProcessCallback {
+    fn on_completed(&self);
+    fn on_failed(&self);
+    fn on_running(&self);
+}
+
 fn string_to_static_str(s: &String) -> &'static str {
     Box::leak(s.clone().into_boxed_str())
 }
@@ -79,6 +85,7 @@ pub async fn run_process(
     factory_name: &String,
     pipeline_name: &String,
     waiting_sec_time: u64,
+    callback_fn: Option<Box<dyn Fn(&ADFPipelineRunResponse) + Send>>,
 ) -> RunProcessResult<RunProcessJoinHandle> {
     let access_token_response = get_azure_access_token_from(None).await.unwrap();
     let res_run = adf_pipelines_run(
@@ -119,19 +126,38 @@ pub async fn run_process(
                                 match r.to_owned().status.unwrap_or(ADFPipelineRunStatus::Failed) {
                                     ADFPipelineRunStatus::Queued
                                     | ADFPipelineRunStatus::InProgress => {
-                                        info!("{:#?}", r);
+                                        //info!("{:#?}", r);
+                                        //running
+                                        match callback_fn.as_ref() {
+                                            None => {}
+                                            Some(callback) => {
+                                                callback(&r);
+                                            }
+                                        }
                                         true
                                     }
                                     ADFPipelineRunStatus::Succeeded => {
-                                        info!("{:#?}", r);
+                                        //info!("{:#?}", r);
                                         //finish the pipeline
+                                        match callback_fn.as_ref() {
+                                            None => {}
+                                            Some(callback) => {
+                                                callback(&r);
+                                            }
+                                        }
                                         false
                                     }
                                     ADFPipelineRunStatus::Failed
                                     | ADFPipelineRunStatus::Canceling
                                     | ADFPipelineRunStatus::Cancelled => {
                                         //finish the pipeline with error
-                                        error!("{:#?}", r);
+                                        //error!("{:#?}", r);
+                                        match callback_fn.as_ref() {
+                                            None => {}
+                                            Some(callback) => {
+                                                callback(&r);
+                                            }
+                                        }
                                         false
                                     }
                                 }

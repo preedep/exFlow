@@ -13,6 +13,7 @@ mod mod_azure;
 mod mod_runtime_api;
 mod mod_runtime_cli;
 
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
@@ -30,13 +31,15 @@ async fn main() -> std::io::Result<()> {
             pipeline_name,
         }) => {
             info!("Run with CLI arguments");
-
             let run_process_result = run_process(
                 subscription_id,
                 resource_group_name,
                 factory_name,
                 pipeline_name,
                 3u64,
+                Some(Box::new(move |response|{
+                        info!("{:#?}", response);
+                }))
             )
             .await;
             match run_process_result {
