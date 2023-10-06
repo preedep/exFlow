@@ -13,7 +13,6 @@ mod mod_azure;
 mod mod_runtime_api;
 mod mod_runtime_cli;
 
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
@@ -37,9 +36,9 @@ async fn main() -> std::io::Result<()> {
                 factory_name,
                 pipeline_name,
                 3u64,
-                Some(Box::new(move |response|{
-                        info!("{:#?}", response);
-                }))
+                Some(Box::new(move |response| {
+                    info!("{:#?}", response);
+                })),
             )
             .await;
             match run_process_result {
@@ -55,35 +54,40 @@ async fn main() -> std::io::Result<()> {
         }
         Some(Commands::Runtime {
             exflow_service_endpoint,
-                 apm_connection_string,
+            apm_connection_string,
         }) => {
             info!("Run with Web Server mode");
             info!("ExFlow Runtime starting....");
             info!("Registering.. to exFlow service");
             ///
             if apm_connection_string.len() > 0 {
-                debug!("APPLICATIONINSIGHTS_CON_STRING = {}",apm_connection_string);
-                let exporter = opentelemetry_application_insights::new_pipeline_from_connection_string(
-                    apm_connection_string
-                ).unwrap().with_client(
-                    reqwest::Client::new()
-                )
+                debug!("APPLICATIONINSIGHTS_CON_STRING = {}", apm_connection_string);
+                let exporter =
+                    opentelemetry_application_insights::new_pipeline_from_connection_string(
+                        apm_connection_string,
+                    )
+                    .unwrap()
+                    .with_client(reqwest::Client::new())
                     .with_service_name("ExFlow-Runtime")
                     .install_batch(opentelemetry::runtime::Tokio);
 
                 let telemetry = tracing_opentelemetry::layer().with_tracer(exporter);
                 let subscriber = Registry::default().with(telemetry);
-                tracing::subscriber::set_global_default(subscriber).expect("setting global default failed");
+                tracing::subscriber::set_global_default(subscriber)
+                    .expect("setting global default failed");
             }
             ////
             HttpServer::new(|| {
                 App::new()
-                    .wrap(middleware::DefaultHeaders::new().add(("ExFlow-Runtime-X-Version", "0.1")))
+                    .wrap(
+                        middleware::DefaultHeaders::new().add(("ExFlow-Runtime-X-Version", "0.1")),
+                    )
                     .wrap(Logger::default())
                     .wrap(Logger::new(
                         r#"%a %t "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#,
-                    )).wrap(RequestTracing::new())
-                       .service(
+                    ))
+                    .wrap(RequestTracing::new())
+                    .service(
                         web::scope("/api/v1")
                             .route("/run_pipeline", web::post().to(post_run_pipeline))
                             .route("/get_status", web::get().to(get_status_pipeline)),
