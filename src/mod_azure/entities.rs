@@ -134,6 +134,7 @@ impl AzureCloudError {
     }
 }
 pub type ADFResult<T> = Result<T, AzureCloudError>;
+pub type AzureAccessTokenResult<T> = Result<T, AzureCloudError>;
 
 impl ADFPipelineParams {
     pub fn new(subscription_id: String, resource_group_name: String, factory_name: String) -> Self {
@@ -208,7 +209,7 @@ impl ADFPipelineParams {
     /// URL for Get Pipeline Status
     ///
     pub(crate) fn to_get_status_url(&self) -> String {
-        ///pipelineruns/{runId}?api-version=2018-06-01
+        //pipelineruns/{runId}?api-version=2018-06-01
         let url = format!(
             "{:0}/pipelineruns/{:1}",
             self.to_url(),

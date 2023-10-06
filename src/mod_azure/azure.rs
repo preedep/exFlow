@@ -1,24 +1,52 @@
 use crate::mod_azure::entities::{
-    ADFCreateRunResponse, ADFPipelineParams, ADFPipelineRunResponse, ADFResult, AzureCloudError,
-    AZURE_RES_REST_API_URL,
+    ADFCreateRunResponse, ADFPipelineParams, ADFPipelineRunResponse, ADFResult,
+    AzureAccessTokenResult, AzureCloudError, AZURE_RES_REST_API_URL,
 };
-use azure_core::auth::TokenCredential;
+use actix_web::body::MessageBody;
+use azure_core::auth::{TokenCredential, TokenResponse};
 use azure_identity::DefaultAzureCredential;
+use chrono::Utc;
 use log::{debug, error};
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter};
+use std::fmt::Display;
 use std::future::Future;
-use std::io::SeekFrom::Start;
-use std::process::Output;
 
+pub async fn get_azure_access_token_from(
+    access_token: Option<TokenResponse>,
+) -> AzureAccessTokenResult<TokenResponse> {
+    match access_token {
+        None => {
+            let credential = DefaultAzureCredential::default();
+            let response = credential.get_token(AZURE_RES_REST_API_URL).await;
+            response
+                .map_err(|e| AzureCloudError { error_cloud: None })
+                .map(|r| r)
+        }
+        Some(a) => {
+            let diff = a.clone().expires_on.unix_timestamp() - Utc::now().timestamp();
+            if diff <= 0 {
+                // get new access token
+                debug!("Request New Access token");
+                let credential = DefaultAzureCredential::default();
+                let response = credential.get_token(AZURE_RES_REST_API_URL).await;
+                response
+                    .map_err(|e| AzureCloudError { error_cloud: None })
+                    .map(|r| r)
+            } else {
+                // use existing access token
+                debug!("Use existing access token");
+                Ok(a.clone())
+            }
+        }
+    }
+}
 pub async fn adf_pipelines_get(
+    token_response: &TokenResponse,
     subscription_id: &str,
     resource_group_name: &str,
     factory_name: &str,
     run_id: &str,
 ) -> ADFResult<ADFPipelineRunResponse> {
-    let credential = DefaultAzureCredential::default();
-    let response = credential.get_token(AZURE_RES_REST_API_URL).await.unwrap();
     //debug!("Access token : {:#?}", response);
     let get_url = ADFPipelineParams::new(
         subscription_id.to_string(),
@@ -30,7 +58,7 @@ pub async fn adf_pipelines_get(
         .get(get_url.to_get_status_url())
         .header(
             "Authorization",
-            format!("Bearer {}", response.token.secret()),
+            format!("Bearer {}", token_response.token.secret()),
         )
         .send()
         .await;
@@ -58,13 +86,14 @@ pub async fn adf_pipelines_get(
     };
 }
 pub async fn adf_pipelines_run(
+    token_response: &TokenResponse,
     subscription_id: &str,
     resource_group_name: &str,
     factory_name: &str,
     pipeline_name: &str,
 ) -> ADFResult<ADFCreateRunResponse> {
-    let credential = DefaultAzureCredential::default();
-    let response = credential.get_token(AZURE_RES_REST_API_URL).await.unwrap();
+    //let credential = DefaultAzureCredential::default();
+    //let response = credential.get_token(AZURE_RES_REST_API_URL).await.unwrap();
     //debug!("Access token : {:#?}", response);
     let create_run = ADFPipelineParams::new(
         subscription_id.to_string(),
@@ -76,7 +105,7 @@ pub async fn adf_pipelines_run(
         .post(create_run.to_run_create_url())
         .header(
             "Authorization",
-            format!("Bearer {}", response.token.secret()),
+            format!("Bearer {}", token_response.token.secret()),
         )
         .header("content-length", 0)
         .send()
@@ -104,7 +133,6 @@ pub async fn adf_pipelines_run(
         }
     };
 }
-
 #[cfg(test)]
 mod tests {
     use super::*;
