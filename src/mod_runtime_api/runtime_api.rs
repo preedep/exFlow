@@ -1,22 +1,31 @@
-use crate::mod_runtime_api::entities::PipelineRunRequest;
+use crate::mod_runtime_api::entities::{ExFlowWebRuntimeError, PipelineRunRequest, PipelineRunResponse};
 use actix_web::{web, HttpResponse, Responder};
 use tracing_attributes::instrument;
 use log::info;
 
+
 use crate::run_process;
+
+type ExFlowWebRuntimeResult<T> = Result<T,ExFlowWebRuntimeError>;
 #[instrument]
-pub async fn post_run_pipeline(request: web::Json<PipelineRunRequest>) -> impl Responder {
+pub async fn post_run_pipeline(request: web::Json<PipelineRunRequest>) -> ExFlowWebRuntimeResult<PipelineRunResponse> {
     //
     // Call run_process is same CLI
     //
-    let _result = run_process(&request.subscription_id,
+    let result = run_process(&request.subscription_id,
     &request.resource_group_name,
         &request.factory_name,
         &request.pipeline_name,3u64,Some(Box::new(|resp|{
             info!("{:#?}",resp);
         }))).await;
-    //result.unwrap().join_handle.join().expect("TODO: panic message");
-    HttpResponse::Ok().finish()
+
+   result.map(|result|{PipelineRunResponse{
+        run_id:result.run_id,
+    }}).map_err(|e|{
+        ExFlowWebRuntimeError{
+
+        }
+    })
 }
 #[instrument]
 pub async fn get_status_pipeline() -> impl Responder {
