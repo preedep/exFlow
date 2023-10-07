@@ -33,6 +33,7 @@ tracing-futures = "0.2"
 tracing-opentelemetry = "0.21"
 tracing-subscriber = {version = "0.3"}
 tracing-actix-web = "0.7"
+derive_more = "0.99"
 
 
 
