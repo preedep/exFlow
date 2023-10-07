@@ -22,9 +22,7 @@ pub async fn post_run_pipeline(request: web::Json<PipelineRunRequest>) -> ExFlow
    result.map(|result|{PipelineRunResponse{
         run_id:result.run_id,
     }}).map_err(|e|{
-        ExFlowWebRuntimeError{
-
-        }
+       ExFlowWebRuntimeError::new(e.to_string())
     })
 }
 #[instrument]

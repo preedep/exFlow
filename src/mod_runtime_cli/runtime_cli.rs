@@ -56,7 +56,16 @@ pub enum Commands {
 }
 
 #[derive(Debug)]
-pub struct RunProcessError {}
+pub struct RunProcessError {
+    pub error_message : String
+}
+impl RunProcessError {
+    pub fn new(error_message: String) -> Self {
+        RunProcessError{
+            error_message
+        }
+    }
+}
 impl Display for RunProcessError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", self)
@@ -180,7 +189,7 @@ pub async fn run_process(
         }
         Err(e) => {
             error!("{:?}", e);
-            Err(RunProcessError {})
+            Err(RunProcessError::new(e.error_cloud.unwrap().error_message.unwrap()))
         }
     }
 }
