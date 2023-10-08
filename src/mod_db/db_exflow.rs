@@ -1,5 +1,5 @@
 use log::{debug, error};
-use tiberius::{AuthMethod, Client, Config};
+use tiberius::{AuthMethod, Client, Config, Query};
 use tokio::net::TcpStream;
 use crate::mod_azure::azure::get_azure_access_token_from;
 use tokio_util::compat::TokioAsyncWriteCompatExt;
@@ -27,8 +27,27 @@ pub async fn get_employees() {
                     tcp.set_nodelay(true).unwrap();
                     let mut client = Client::connect(config, tcp.compat_write()).await;
                     match client {
-                        Ok(c) => {
+                        Ok(mut c) => {
                             debug!("DB Connect success");
+                            let mut select = Query::new("select * from Employee");
+                            let res = select.query(&mut c).await;
+                            debug!("Query completed");
+                            debug!("reading rows");
+                            match res {
+                                Ok(r) => {
+                                    debug!("Printing employee");
+                                    let list = r.into_results().await.unwrap();
+                                    let _ = list.iter().map(|v| {
+                                            let _ = v.iter().map(|x|{
+                                                debug!("{:#?}", x);
+                                            });
+                                    });
+                                }
+                                Err(e) => {
+                                    debug!("Query failed {:#?}", e);
+                                }
+                            }
+
                         }
                         Err(e) => {
                             error!("DB Connect failed: {:#?}", e);
