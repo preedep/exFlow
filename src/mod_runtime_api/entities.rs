@@ -1,22 +1,19 @@
-use actix_web::{CustomizeResponder, error, HttpRequest, HttpResponse, Responder};
 use actix_web::body::BoxBody;
 use actix_web::http::header::ContentType;
+use actix_web::{error, CustomizeResponder, HttpRequest, HttpResponse, Responder};
 use derive_more::{Display, Error};
 use http::StatusCode;
 
 use serde::{Deserialize, Serialize};
 
-
-#[derive(Debug, Display, Error,Serialize,Deserialize)]
+#[derive(Debug, Display, Error, Serialize, Deserialize)]
 pub struct ExFlowWebRuntimeError {
     #[serde(rename = "error_message")]
     pub error_message: String,
 }
 impl ExFlowWebRuntimeError {
     pub fn new(error_message: String) -> Self {
-        ExFlowWebRuntimeError {
-            error_message,
-        }
+        ExFlowWebRuntimeError { error_message }
     }
 }
 impl error::ResponseError for ExFlowWebRuntimeError {

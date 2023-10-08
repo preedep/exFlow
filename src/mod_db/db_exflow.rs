@@ -1,13 +1,12 @@
+use crate::mod_azure::azure::get_azure_access_token_from;
+use crate::mod_azure::entities::AZURE_SPN_DB_URL;
 use log::{debug, error};
 use tiberius::{AuthMethod, Client, Config, Query};
 use tokio::net::TcpStream;
-use crate::mod_azure::azure::get_azure_access_token_from;
 use tokio_util::compat::TokioAsyncWriteCompatExt;
-use crate::mod_azure::entities::AZURE_SPN_DB_URL;
 
 pub async fn get_employees() {
-    let res_token = get_azure_access_token_from(None,
-                                                Some(AZURE_SPN_DB_URL.to_string())).await;
+    let res_token = get_azure_access_token_from(None, Some(AZURE_SPN_DB_URL.to_string())).await;
     match res_token {
         Ok(token) => {
             debug!("Access Token : {:#?}", token);
@@ -16,9 +15,7 @@ pub async fn get_employees() {
             config.host("nickdatabaseserver001.database.windows.net");
             config.database("nickdatabaseserver001");
             config.port(1433);
-            config.authentication(AuthMethod::AADToken(
-                token.token.secret().to_string(),
-            ));
+            config.authentication(AuthMethod::AADToken(token.token.secret().to_string()));
             config.trust_cert();
 
             let tcp = TcpStream::connect(config.get_addr()).await;
@@ -37,17 +34,16 @@ pub async fn get_employees() {
                                 Ok(r) => {
                                     debug!("Printing employee");
                                     let list = r.into_results().await.unwrap();
-                                    let _ = list.iter().map(|v| {
-                                            let _ = v.iter().map(|x|{
-                                                debug!("{:#?}", x);
-                                            });
-                                    });
+                                    for element in list.iter() {
+                                        for row in element.iter() {
+                                            debug!("{:?}", row);
+                                        }
+                                    }
                                 }
                                 Err(e) => {
                                     debug!("Query failed {:#?}", e);
                                 }
                             }
-
                         }
                         Err(e) => {
                             error!("DB Connect failed: {:#?}", e);

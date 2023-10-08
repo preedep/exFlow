@@ -1,4 +1,7 @@
-use crate::mod_azure::entities::{ADFCreateRunResponse, ADFPipelineParams, ADFPipelineRunResponse, ADFResult, AzureAccessTokenResult, AzureCloudError,  AZURE_SPN_URL};
+use crate::mod_azure::entities::{
+    ADFCreateRunResponse, ADFPipelineParams, ADFPipelineRunResponse, ADFResult,
+    AzureAccessTokenResult, AzureCloudError, AZURE_SPN_URL,
+};
 use actix_web::body::MessageBody;
 use azure_core::auth::{TokenCredential, TokenResponse};
 use azure_identity::DefaultAzureCredential;
@@ -10,12 +13,14 @@ use std::future::Future;
 
 pub async fn get_azure_access_token_from(
     access_token: Option<TokenResponse>,
-    spn_url : Option<String>,
+    spn_url: Option<String>,
 ) -> AzureAccessTokenResult<TokenResponse> {
     match access_token {
         None => {
             let credential = DefaultAzureCredential::default();
-            let response = credential.get_token(spn_url.unwrap_or(AZURE_SPN_URL.to_string()).as_str()).await;
+            let response = credential
+                .get_token(spn_url.unwrap_or(AZURE_SPN_URL.to_string()).as_str())
+                .await;
             response
                 .map_err(|e| AzureCloudError { error_cloud: None })
                 .map(|r| r)
@@ -26,7 +31,9 @@ pub async fn get_azure_access_token_from(
                 // get new access token
                 debug!("Request New Access token");
                 let credential = DefaultAzureCredential::default();
-                let response = credential.get_token(spn_url.unwrap_or(AZURE_SPN_URL.to_string()).as_str()).await;
+                let response = credential
+                    .get_token(spn_url.unwrap_or(AZURE_SPN_URL.to_string()).as_str())
+                    .await;
                 response
                     .map_err(|e| AzureCloudError { error_cloud: None })
                     .map(|r| r)

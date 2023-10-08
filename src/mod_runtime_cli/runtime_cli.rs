@@ -57,13 +57,11 @@ pub enum Commands {
 
 #[derive(Debug)]
 pub struct RunProcessError {
-    pub error_message : String
+    pub error_message: String,
 }
 impl RunProcessError {
     pub fn new(error_message: String) -> Self {
-        RunProcessError{
-            error_message
-        }
+        RunProcessError { error_message }
     }
 }
 impl Display for RunProcessError {
@@ -95,7 +93,7 @@ pub async fn run_process(
     waiting_sec_time: u64,
     callback_fn: Option<Box<dyn Fn(&ADFPipelineRunResponse) + Send>>,
 ) -> RunProcessResult<RunProcessJoinHandle> {
-    let access_token_response = get_azure_access_token_from(None,None).await.unwrap();
+    let access_token_response = get_azure_access_token_from(None, None).await.unwrap();
     let res_run = adf_pipelines_run(
         &access_token_response,
         subscription_id.as_str(),
@@ -122,8 +120,7 @@ pub async fn run_process(
                         async_std::task::sleep(Duration::from_secs(waiting_sec_time)).await;
                         //sleep(Duration::from_secs(waiting_sec_time));
                         let access_token_response =
-                            get_azure_access_token_from(
-                                Some(access_token_response.clone()),None)
+                            get_azure_access_token_from(Some(access_token_response.clone()), None)
                                 .await
                                 .unwrap();
 
@@ -190,7 +187,9 @@ pub async fn run_process(
         }
         Err(e) => {
             error!("{:?}", e);
-            Err(RunProcessError::new(e.error_cloud.unwrap().error_message.unwrap()))
+            Err(RunProcessError::new(
+                e.error_cloud.unwrap().error_message.unwrap(),
+            ))
         }
     }
 }
