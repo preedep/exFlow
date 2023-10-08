@@ -6,6 +6,7 @@ mod mod_db;
 use std::time::Duration;
 use clokwerk::{AsyncScheduler, Job, TimeUnits};
 use log::{debug, error, info};
+use crate::mod_db::db_exflow::get_employees;
 
 
 use crate::mod_runtime_api::entities::PipelineRunRequest;
@@ -35,6 +36,9 @@ async fn run_adf_job() {
 async fn main(){
     pretty_env_logger::init();
     info!("ExFlow Scheduler Running...");
+
+    get_employees().await;
+    /*
     // Create a new scheduler
     let mut scheduler = AsyncScheduler::new();
 // Add some tasks to it
@@ -59,16 +63,5 @@ async fn main(){
         scheduler.run_pending().await;
         tokio::time::sleep(Duration::from_millis(10)).await;
     }
-
-// Or spawn a task to run it forever
-    /*
-    tokio::spawn(async move {
-        debug!("Thread Spawn");
-        loop {
-            scheduler.run_pending().await;
-            tokio::time::sleep(Duration::from_millis(100)).await;
-        }
-    });
-
      */
 }
