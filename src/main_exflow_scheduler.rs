@@ -43,7 +43,20 @@ async fn main(){
         .run(|| async {
             run_adf_job().await
         });
-
+    scheduler
+        .every(1.minutes())
+        .plus(30.seconds())
+        .run(|| async {
+            info!("Scheduler Running 1");
+            run_adf_job().await
+        });
+    scheduler
+        .every(1.minutes())
+        .plus(30.seconds())
+        .run(|| async {
+            info!("Scheduler Running 2");
+            run_adf_job().await
+        });
     loop {
         scheduler.run_pending().await;
         tokio::time::sleep(Duration::from_millis(10)).await;
