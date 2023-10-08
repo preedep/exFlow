@@ -2,9 +2,10 @@ use crate::mod_runtime_api::entities::{ExFlowWebRuntimeError, PipelineRunRequest
 use actix_web::{web, HttpResponse, Responder};
 use tracing_attributes::instrument;
 use log::info;
+use crate::mod_runtime_cli::runtime_cli::run_process;
 
 
-use crate::run_process;
+
 
 type ExFlowWebRuntimeResult<T> = Result<T,ExFlowWebRuntimeError>;
 #[instrument]

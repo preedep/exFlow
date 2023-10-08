@@ -45,7 +45,12 @@ exflow_runtime_required = ["azure_core",
                             "serde",
                             "serde_qs",
                             "serde_urlencoded"]
-exflow_scheduler_required = ["clokwerk"]
+exflow_scheduler_required = ["clokwerk",
+    "azure_core",
+    "azure_identity",
+    "serde",
+    "serde_qs",
+    "serde_urlencoded"]
 
 [[bin]]
 name = "exflow_runtime"
