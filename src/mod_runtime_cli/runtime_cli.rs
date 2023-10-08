@@ -95,7 +95,7 @@ pub async fn run_process(
     waiting_sec_time: u64,
     callback_fn: Option<Box<dyn Fn(&ADFPipelineRunResponse) + Send>>,
 ) -> RunProcessResult<RunProcessJoinHandle> {
-    let access_token_response = get_azure_access_token_from(None).await.unwrap();
+    let access_token_response = get_azure_access_token_from(None,None).await.unwrap();
     let res_run = adf_pipelines_run(
         &access_token_response,
         subscription_id.as_str(),
@@ -122,7 +122,8 @@ pub async fn run_process(
                         async_std::task::sleep(Duration::from_secs(waiting_sec_time)).await;
                         //sleep(Duration::from_secs(waiting_sec_time));
                         let access_token_response =
-                            get_azure_access_token_from(Some(access_token_response.clone()))
+                            get_azure_access_token_from(
+                                Some(access_token_response.clone()),None)
                                 .await
                                 .unwrap();
 

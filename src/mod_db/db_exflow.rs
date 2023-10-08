@@ -3,9 +3,11 @@ use tiberius::{AuthMethod, Client, Config};
 use tokio::net::TcpStream;
 use crate::mod_azure::azure::get_azure_access_token_from;
 use tokio_util::compat::TokioAsyncWriteCompatExt;
+use crate::mod_azure::entities::AZURE_SPN_DB_URL;
 
 pub async fn get_employees() {
-    let res_token = get_azure_access_token_from(None).await;
+    let res_token = get_azure_access_token_from(None,
+                                                Some(AZURE_SPN_DB_URL.to_string())).await;
     match res_token {
         Ok(token) => {
             debug!("Access Token : {:#?}", token);
@@ -23,7 +25,6 @@ pub async fn get_employees() {
             match tcp {
                 Ok(tcp) => {
                     tcp.set_nodelay(true).unwrap();
-
                     let mut client = Client::connect(config, tcp.compat_write()).await;
                     match client {
                         Ok(c) => {

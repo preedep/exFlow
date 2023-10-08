@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 const ADF_API_VERSION: &'static str = "2018-06-01";
-pub const AZURE_RES_REST_API_URL: &'static str = "https://management.azure.com";
-
+pub const AZURE_SPN_URL: &'static str = "https://management.azure.com";
+pub const AZURE_SPN_DB_URL: &'static str = "https://database.windows.net";
 const ADF_REST_API_RUN_CREATE_URI: &'static str = "createRun";
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -182,7 +182,7 @@ impl ADFPipelineParams {
     ///
     fn to_url(&self) -> String {
         format!("{:0}/subscriptions/{:1}/resourceGroups/{:2}/providers/Microsoft.DataFactory/factories/{:3}",
-                AZURE_RES_REST_API_URL,
+                AZURE_SPN_URL,
                 self.subscription_id,
                 self.resource_group_name,
                 self.factory_name)
