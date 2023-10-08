@@ -1,6 +1,7 @@
 mod mod_azure;
 mod mod_runtime_api;
 mod mod_runtime_cli;
+mod mod_db;
 
 use std::time::Duration;
 use clokwerk::{AsyncScheduler, Job, TimeUnits};
