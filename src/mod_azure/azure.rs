@@ -7,7 +7,6 @@ use azure_identity::DefaultAzureCredential;
 use chrono::Utc;
 use log::{debug, error};
 
-
 use crate::mod_azure::entities::{
     ADFCreateRunResponse, ADFPipelineParams, ADFPipelineRunResponse, ADFResult,
     AZURE_SPN_URL, AzureAccessTokenResult, AzureCloudError,

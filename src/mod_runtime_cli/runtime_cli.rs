@@ -3,16 +3,20 @@ use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
 
+use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
-use actix_web::{middleware, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use clap::{command, Parser, Subcommand};
-use log::{error, info};
+use http::StatusCode;
+use log::{debug, error, info};
+use reqwest::{Error, Response};
 
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
 use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
-use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
+use crate::mod_ex_flow_utils::uri::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
 use crate::mod_ex_flow_utils::utils_ex_flow::{get_system_info, set_global_apm_tracing};
+use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
+use crate::mod_service_api::entities::ExFlowRuntimeRegisterRequest;
 
 const SERVICE_NAME: &'static str = "ExFlow-Runtime";
 
@@ -22,11 +26,11 @@ const SERVICE_NAME: &'static str = "ExFlow-Runtime";
 #[command(author = "Preedee Ponchevin <preedee.digital@gmail.com>")]
 #[command(version = "1.0")]
 #[command(
-    about = "ExFlow (Extended) Flow , Runtime for integration with ADF , Step Function , etc."
+about = "ExFlow (Extended) Flow , Runtime for integration with ADF , Step Function , etc."
 )]
 #[command(propagate_version = true)]
 #[command(
-    help_template = "{about-section}Version: {version} \n {author} \n\n {usage-heading} {usage} \n {all-args} {tab}"
+help_template = "{about-section}Version: {version} \n {author} \n\n {usage-heading} {usage} \n {all-args} {tab}"
 )]
 pub struct ExFlowRuntimeArgs {
     #[command(subcommand)]
@@ -37,13 +41,13 @@ pub struct ExFlowRuntimeArgs {
 pub enum Commands {
     /// Run in mode web service
     Runtime {
-        /// exFlow Service Endpoint
+        /// exFlow Service Endpoint , with Port number [Ex. localhost:8082)
         #[arg(short, long)]
         ex_flow_service_endpoint: String,
 
         /// exFlow Runtime Client Id Get from ExFlow Portal
         #[arg(short, long)]
-        client_id:String,
+        client_id: String,
         /// Run with specific port
         #[arg(short, long, default_value = "8082")]
         port_number: u16,
@@ -121,7 +125,7 @@ pub async fn run_process(
         factory_name.as_str(),
         pipeline_name.as_str(),
     )
-    .await;
+        .await;
 
     match res_run {
         Ok(res) => {
@@ -222,11 +226,11 @@ impl ExFlowRuntimeArgs {
                 Ok(())
             }
             Some(Commands::Cli {
-                subscription_id,
-                resource_group_name,
-                factory_name,
-                pipeline_name,
-            }) => {
+                     subscription_id,
+                     resource_group_name,
+                     factory_name,
+                     pipeline_name,
+                 }) => {
                 info!("Run with CLI arguments");
                 let run_process_result = run_process(
                     subscription_id,
@@ -238,7 +242,7 @@ impl ExFlowRuntimeArgs {
                         info!("{:#?}", response);
                     })),
                 )
-                .await;
+                    .await;
                 match run_process_result {
                     Ok(r) => {
                         info!("Waiting for process [{}] to finish", r.run_id);
@@ -251,19 +255,41 @@ impl ExFlowRuntimeArgs {
                 Ok(())
             }
             Some(Commands::Runtime {
-                ex_flow_service_endpoint,
+                     ex_flow_service_endpoint,
                      client_id,
-                port_number,
-                apm_connection_string,
-            }) => {
+                     port_number,
+                     apm_connection_string,
+                 }) => {
                 info!("Run with Web Server mode");
                 info!("ExFlow Runtime starting....");
 
-                ///
                 set_global_apm_tracing(apm_connection_string.as_str(), SERVICE_NAME);
-                ////
-                info!("Registering.. to exFlow service [{}]",ex_flow_service_endpoint);
-                get_system_info();
+                //info!("Registering.. to exFlow service [{}]",ex_flow_service_endpoint);
+                let sys_info = get_system_info();
+                let end_point = format!("http://{}/{}/{}",
+                                        ex_flow_service_endpoint,
+                                        EX_FLOW_SERVICE_API_SCOPE,
+                                        EX_FLOW_SERVICE_API_IR_REGISTER);
+                debug!("Registering... to exFlow service [{}]",end_point);
+                let request = ExFlowRuntimeRegisterRequest::new(client_id.as_str(),&sys_info);
+
+                let  register_res= reqwest::Client::new()
+                    .post(end_point)
+                    .json(&request)
+                    .send().await;
+                match register_res {
+                    Ok(r) => {
+                        if r.status() == StatusCode::OK {
+                            info!("Registering... to exFlow service [{:#?}]",r);
+                        }else{
+                            panic!("Cannot register ExFlowRuntime : {:#?}",r);
+                        }
+                    }
+                    Err(e) => {
+                        error!("Cannot register ExFlowRuntime : {:?}",e);
+                        panic!("{}",e);
+                    }
+                }
 
                 HttpServer::new(|| {
                     App::new()
@@ -282,10 +308,10 @@ impl ExFlowRuntimeArgs {
                                 .route("/get_status", web::get().to(get_status_pipeline)),
                         )
                 })
-                .workers(10)
-                .bind(("0.0.0.0", *port_number))?
-                .run()
-                .await
+                    .workers(10)
+                    .bind(("0.0.0.0", *port_number))?
+                    .run()
+                    .await
             }
         }
     }

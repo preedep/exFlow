@@ -3,10 +3,12 @@ use actix_web::middleware::Logger;
 use actix_web_opentelemetry::RequestTracing;
 use clap::Parser;
 use log::info;
+
+use crate::mod_ex_flow_utils::uri::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
 use crate::mod_ex_flow_utils::utils_ex_flow::set_global_apm_tracing;
 use crate::mod_service_api::service_api::post_register_runtime;
 
-const SERVICE_NAME: &'static str ="ExFlow-Service";
+const SERVICE_NAME: &'static str = "ExFlow-Service";
 
 /// Simple program to greet a person
 #[derive(Parser)]
@@ -29,13 +31,13 @@ pub struct ExFlowServiceArgs {
 }
 
 impl ExFlowServiceArgs {
-    pub async fn run(&self) -> std::io::Result<()>{
+    pub async fn run(&self) -> std::io::Result<()> {
         info!("Run with Web Server mode");
         info!("ExFlow Runtime starting....");
         info!("Registering.. to exFlow service");
 
         let apm_connection_string = self.apm_connection_string.clone();
-        set_global_apm_tracing(apm_connection_string.as_str(),SERVICE_NAME);
+        set_global_apm_tracing(apm_connection_string.as_str(), SERVICE_NAME);
 
         HttpServer::new(|| {
             App::new()
@@ -49,8 +51,8 @@ impl ExFlowServiceArgs {
                 ))
                 .wrap(RequestTracing::new())
                 .service(
-                    web::scope("/api/v1")
-                        .route("/ir/register",web::post().to(post_register_runtime))
+                    web::scope(EX_FLOW_SERVICE_API_SCOPE)
+                        .route(EX_FLOW_SERVICE_API_IR_REGISTER, web::post().to(post_register_runtime))
                 )
         })
             .workers(10)

@@ -50,7 +50,8 @@ exflow_runtime_required = ["azure_core",
                             "serde_qs",
                             "serde_urlencoded",
                             "sysinfo",
-                            "local-ip-address"]
+                            "local-ip-address"
+]
 
 exflow_scheduler_required = ["clokwerk",
     "azure_core",
@@ -58,7 +59,10 @@ exflow_scheduler_required = ["clokwerk",
     "serde",
     "serde_qs",
     "serde_urlencoded",
-    "tiberius"]
+    "tiberius",
+    "local-ip-address",
+    "sysinfo"
+]
 
 exflow_service_required = [
     "azure_core",
@@ -66,7 +70,9 @@ exflow_service_required = [
     "serde",
     "serde_qs",
     "serde_urlencoded",
-    "tiberius"]
+    "tiberius",
+    "sysinfo",
+    "local-ip-address"]
 
 [[bin]]
 name = "exflow_runtime"

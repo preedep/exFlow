@@ -1,9 +1,10 @@
-use crate::mod_azure::azure::get_azure_access_token_from;
-use crate::mod_azure::entities::AZURE_SPN_DB_URL;
 use log::{debug, error};
 use tiberius::{AuthMethod, Client, Config, Query};
 use tokio::net::TcpStream;
 use tokio_util::compat::TokioAsyncWriteCompatExt;
+
+use crate::mod_azure::azure::get_azure_access_token_from;
+use crate::mod_azure::entities::AZURE_SPN_DB_URL;
 
 pub async fn get_employees() {
     let res_token = get_azure_access_token_from(None, Some(AZURE_SPN_DB_URL.to_string())).await;
