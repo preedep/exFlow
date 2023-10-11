@@ -7,11 +7,7 @@ pub struct TblExFlowApps {}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TblExFlowJobs {}
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TblExFlowClientIDs {
-
-}
+pub struct TblExFlowClientIDs {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TblExFlowJobHistory {
-
-}
+pub struct TblExFlowJobHistory {}

@@ -1,11 +1,18 @@
-use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
-use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
-use clap::{command, Parser, Subcommand};
-use log::{error, info};
 use std::fmt::{Display, Formatter};
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
+
+use actix_web::{App, HttpServer, middleware, web};
+use actix_web::middleware::Logger;
+use actix_web_opentelemetry::RequestTracing;
+use clap::{command, Parser, Subcommand};
+use log::{error, info};
+
+use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
+use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
+use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
+use crate::mod_utils::utils_exflow::set_global_tracing;
 
 /// Simple program to greet a person
 #[derive(Parser)]
@@ -14,11 +21,11 @@ use std::time::Duration;
 #[command(author = "Preedee Ponchevin <preedee.digital@gmail.com>")]
 #[command(version = "1.0")]
 #[command(
-    about = "ExFlow (Extended) Flow , Runtime for integration with ADF , Step Function , etc."
+about = "ExFlow (Extended) Flow , Runtime for integration with ADF , Step Function , etc."
 )]
 #[command(propagate_version = true)]
 #[command(
-    help_template = "{about-section}Version: {version} \n {author} \n\n {usage-heading} {usage} \n {all-args} {tab}"
+help_template = "{about-section}Version: {version} \n {author} \n\n {usage-heading} {usage} \n {all-args} {tab}"
 )]
 pub struct ExFlowRuntimeArgs {
     #[command(subcommand)]
@@ -32,6 +39,10 @@ pub enum Commands {
         /// exFlow Service Endpoint
         #[arg(short, long)]
         exflow_service_endpoint: String,
+
+        /// Run with specific port
+        #[arg(short, long, default_value = "8082")]
+        port_number: u16,
         /// Azure application insights connection string
         #[arg(short, long, required = false)]
         apm_connection_string: String,
@@ -60,11 +71,13 @@ pub enum Commands {
 pub struct RunProcessError {
     pub error_message: String,
 }
+
 impl RunProcessError {
     pub fn new(error_message: String) -> Self {
         RunProcessError { error_message }
     }
 }
+
 impl Display for RunProcessError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", self)
@@ -75,6 +88,7 @@ pub struct RunProcessJoinHandle {
     pub run_id: String,
     pub join_handle: JoinHandle<()>,
 }
+
 pub type RunProcessResult<T> = Result<T, RunProcessError>;
 
 pub trait RunProcessCallback {
@@ -86,6 +100,7 @@ pub trait RunProcessCallback {
 fn string_to_static_str(s: &String) -> &'static str {
     Box::leak(s.clone().into_boxed_str())
 }
+
 pub async fn run_process(
     subscription_id: &String,
     resource_group_name: &String,
@@ -102,7 +117,7 @@ pub async fn run_process(
         factory_name.as_str(),
         pipeline_name.as_str(),
     )
-    .await;
+        .await;
 
     match res_run {
         Ok(res) => {
@@ -191,6 +206,79 @@ pub async fn run_process(
             Err(RunProcessError::new(
                 e.error_cloud.unwrap().error_message.unwrap(),
             ))
+        }
+    }
+}
+
+impl ExFlowRuntimeArgs {
+    pub async fn run(&self) -> std::io::Result<()> {
+        match &self.command {
+            None => {
+                println!("Exflow runtime support 2 modes [CLI or Runtime] , Please use --help for more information");
+                Ok(())
+            }
+            Some(Commands::Cli {
+                     subscription_id,
+                     resource_group_name,
+                     factory_name,
+                     pipeline_name,
+                 }) => {
+                info!("Run with CLI arguments");
+                let run_process_result = run_process(
+                    subscription_id,
+                    resource_group_name,
+                    factory_name,
+                    pipeline_name,
+                    3u64,
+                    Some(Box::new(move |response| {
+                        info!("{:#?}", response);
+                    })),
+                )
+                    .await;
+                match run_process_result {
+                    Ok(r) => {
+                        info!("Waiting for process [{}] to finish", r.run_id);
+                        r.join_handle.join().expect("Failed to join");
+                    }
+                    Err(e) => {
+                        error!("Failed to run process {:?}", e);
+                    }
+                }
+                Ok(())
+            }
+            Some(Commands::Runtime {
+                     exflow_service_endpoint,
+                     port_number,
+                     apm_connection_string,
+                 }) => {
+                info!("Run with Web Server mode");
+                info!("ExFlow Runtime starting....");
+                info!("Registering.. to exFlow service");
+                ///
+                set_global_tracing(&apm_connection_string);
+                ////
+                HttpServer::new(|| {
+                    App::new()
+                        .wrap(
+                            middleware::DefaultHeaders::new()
+                                .add(("ExFlow-Runtime-X-Version", "0.1")),
+                        )
+                        .wrap(Logger::default())
+                        .wrap(Logger::new(
+                            r#"%a %t "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#,
+                        ))
+                        .wrap(RequestTracing::new())
+                        .service(
+                            web::scope("/api/v1")
+                                .route("/run_pipeline", web::post().to(post_run_pipeline))
+                                .route("/get_status", web::get().to(get_status_pipeline)),
+                        )
+                })
+                    .workers(10)
+                    .bind(("0.0.0.0", *port_number))?
+                    .run()
+                    .await
+            }
         }
     }
 }
