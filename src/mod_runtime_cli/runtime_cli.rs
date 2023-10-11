@@ -41,6 +41,9 @@ pub enum Commands {
         #[arg(short, long)]
         ex_flow_service_endpoint: String,
 
+        /// exFlow Runtime Client Id Get from ExFlow Portal
+        #[arg(short, long)]
+        client_id:String,
         /// Run with specific port
         #[arg(short, long, default_value = "8082")]
         port_number: u16,
@@ -249,6 +252,7 @@ impl ExFlowRuntimeArgs {
             }
             Some(Commands::Runtime {
                 ex_flow_service_endpoint,
+                     client_id,
                 port_number,
                 apm_connection_string,
             }) => {
