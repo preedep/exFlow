@@ -11,7 +11,7 @@ pub struct TblExFlowClientIDs {
 
 }
 
-#[derive!(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TblExFlowJobHistory {
 
 }

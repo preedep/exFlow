@@ -1,0 +1,1 @@
+./build_runtime.sh && ./build_services.sh && ./build_scheduler.sh

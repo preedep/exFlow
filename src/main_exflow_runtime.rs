@@ -4,19 +4,22 @@ use actix_web::{middleware, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use clap::Parser;
 
-use crate::mod_runtime_cli::runtime_cli::{run_process, Commands, ExFlowArgs};
+use crate::mod_runtime_cli::runtime_cli::{run_process, Commands, ExFlowRuntimeArgs};
 use log::{debug, error, info};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::Registry;
+use crate::mod_utils::utils::set_global_tracing;
 
 mod mod_azure;
 mod mod_runtime_api;
 mod mod_runtime_cli;
 
+mod mod_utils;
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
-    let args = ExFlowArgs::parse();
+    let args = ExFlowRuntimeArgs::parse();
 
     match &args.command {
         None => {
@@ -60,6 +63,7 @@ async fn main() -> std::io::Result<()> {
             info!("ExFlow Runtime starting....");
             info!("Registering.. to exFlow service");
             ///
+            /*
             if apm_connection_string.len() > 0 {
                 debug!("APPLICATIONINSIGHTS_CON_STRING = {}", apm_connection_string);
                 let exporter =
@@ -75,7 +79,8 @@ async fn main() -> std::io::Result<()> {
                 let subscriber = Registry::default().with(telemetry);
                 tracing::subscriber::set_global_default(subscriber)
                     .expect("setting global default failed");
-            }
+            }*/
+            set_global_tracing(&apm_connection_string);
             ////
             HttpServer::new(|| {
                 App::new()

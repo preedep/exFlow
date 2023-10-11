@@ -20,7 +20,7 @@ use std::time::Duration;
 #[command(
     help_template = "{about-section}Version: {version} \n {author} \n\n {usage-heading} {usage} \n {all-args} {tab}"
 )]
-pub struct ExFlowArgs {
+pub struct ExFlowRuntimeArgs {
     #[command(subcommand)]
     pub command: Option<Commands>,
 }
@@ -32,6 +32,7 @@ pub enum Commands {
         /// exFlow Service Endpoint
         #[arg(short, long)]
         exflow_service_endpoint: String,
+        /// Azure application insights connection string
         #[arg(short, long, required = false)]
         apm_connection_string: String,
     },
