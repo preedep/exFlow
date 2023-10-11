@@ -12,7 +12,7 @@ use log::{error, info};
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
 use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
 use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
-use crate::mod_ex_flow_utils::utils_ex_flow::set_global_apm_tracing;
+use crate::mod_ex_flow_utils::utils_ex_flow::{get_system_info, set_global_apm_tracing};
 
 const SERVICE_NAME: &'static str = "ExFlow-Runtime";
 
@@ -254,10 +254,13 @@ impl ExFlowRuntimeArgs {
             }) => {
                 info!("Run with Web Server mode");
                 info!("ExFlow Runtime starting....");
-                info!("Registering.. to exFlow service [{}]",ex_flow_service_endpoint);
+
                 ///
                 set_global_apm_tracing(apm_connection_string.as_str(), SERVICE_NAME);
                 ////
+                info!("Registering.. to exFlow service [{}]",ex_flow_service_endpoint);
+                get_system_info();
+
                 HttpServer::new(|| {
                     App::new()
                         .wrap(
