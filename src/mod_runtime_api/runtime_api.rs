@@ -1,12 +1,14 @@
+use actix_web::{HttpResponse, Responder, web};
+use log::info;
+use tracing_attributes::instrument;
+
 use crate::mod_runtime_api::entities::{
     ExFlowWebRuntimeError, PipelineRunRequest, PipelineRunResponse,
 };
 use crate::mod_runtime_cli::runtime_cli::run_process;
-use actix_web::{web, HttpResponse, Responder};
-use log::info;
-use tracing_attributes::instrument;
 
 type ExFlowWebRuntimeResult<T> = Result<T, ExFlowWebRuntimeError>;
+
 #[instrument]
 pub async fn post_run_pipeline(
     request: web::Json<PipelineRunRequest>,
@@ -24,7 +26,7 @@ pub async fn post_run_pipeline(
             info!("{:#?}", resp);
         })),
     )
-    .await;
+        .await;
 
     result
         .map(|result| PipelineRunResponse {
@@ -32,6 +34,7 @@ pub async fn post_run_pipeline(
         })
         .map_err(|e| ExFlowWebRuntimeError::new(e.to_string()))
 }
+
 #[instrument]
 pub async fn get_status_pipeline() -> impl Responder {
     HttpResponse::Ok().finish()

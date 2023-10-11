@@ -1,4 +1,2 @@
 #[derive(Debug, Display, Error, Serialize, Deserialize)]
-pub struct ExFlowRuntimeRegisterRequest{
-
-}
+pub struct ExFlowRuntimeRegisterRequest {}

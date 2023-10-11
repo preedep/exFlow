@@ -1,6 +1,7 @@
+use std::fmt::{Display, Formatter};
+
 use log::debug;
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter};
 
 const ADF_API_VERSION: &'static str = "2018-06-01";
 pub const AZURE_SPN_URL: &'static str = "https://management.azure.com";
@@ -38,6 +39,7 @@ pub struct ADFPipelineParams {
 
     pub query_params: ADFPipelineParamsQueryString,
 }
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ADFPipelineParamsQueryString {
     #[serde(rename = "api-version")]
@@ -51,6 +53,7 @@ pub struct ADFPipelineParamsQueryString {
     #[serde(rename = "startFromFailure")]
     start_from_failure: Option<bool>,
 }
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ADFCreateRunResponse {
     #[serde(rename = "runId")]
@@ -106,16 +109,19 @@ pub struct ADFCloudError {
     #[serde(rename = "target")]
     pub error_target: Option<String>,
 }
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct AzureCloudError {
     #[serde(rename = "error")]
     pub error_cloud: Option<ADFCloudError>,
 }
+
 impl Display for ADFCloudError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:#?}", self)
     }
 }
+
 impl ADFCloudError {
     fn new(code: &str, message: &str) -> Self {
         ADFCloudError {
@@ -126,6 +132,7 @@ impl ADFCloudError {
         }
     }
 }
+
 impl AzureCloudError {
     pub(crate) fn new(code: &str, message: &str) -> Self {
         AzureCloudError {
@@ -133,6 +140,7 @@ impl AzureCloudError {
         }
     }
 }
+
 pub type ADFResult<T> = Result<T, AzureCloudError>;
 pub type AzureAccessTokenResult<T> = Result<T, AzureCloudError>;
 

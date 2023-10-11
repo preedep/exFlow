@@ -1,15 +1,17 @@
-use crate::mod_azure::entities::{
-    ADFCreateRunResponse, ADFPipelineParams, ADFPipelineRunResponse, ADFResult,
-    AzureAccessTokenResult, AzureCloudError, AZURE_SPN_URL,
-};
+use std::fmt::Display;
+use std::future::Future;
+
 use actix_web::body::MessageBody;
 use azure_core::auth::{TokenCredential, TokenResponse};
 use azure_identity::DefaultAzureCredential;
 use chrono::Utc;
 use log::{debug, error};
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
-use std::future::Future;
+
+use crate::mod_azure::entities::{
+    ADFCreateRunResponse, ADFPipelineParams, ADFPipelineRunResponse, ADFResult,
+    AZURE_SPN_URL, AzureAccessTokenResult, AzureCloudError,
+};
 
 pub async fn get_azure_access_token_from(
     access_token: Option<TokenResponse>,
@@ -45,6 +47,7 @@ pub async fn get_azure_access_token_from(
         }
     }
 }
+
 pub async fn adf_pipelines_get(
     token_response: &TokenResponse,
     subscription_id: &str,
@@ -58,7 +61,7 @@ pub async fn adf_pipelines_get(
         resource_group_name.to_string(),
         factory_name.to_string(),
     )
-    .with_run_id(run_id.to_string());
+        .with_run_id(run_id.to_string());
     let response = reqwest::Client::new()
         .get(get_url.to_get_status_url())
         .header(
@@ -90,6 +93,7 @@ pub async fn adf_pipelines_get(
         }
     };
 }
+
 pub async fn adf_pipelines_run(
     token_response: &TokenResponse,
     subscription_id: &str,
@@ -105,7 +109,7 @@ pub async fn adf_pipelines_run(
         resource_group_name.to_string(),
         factory_name.to_string(),
     )
-    .with_pipeline_name(pipeline_name.to_string());
+        .with_pipeline_name(pipeline_name.to_string());
     let response = reqwest::Client::new()
         .post(create_run.to_run_create_url())
         .header(
@@ -138,10 +142,13 @@ pub async fn adf_pipelines_run(
         }
     };
 }
+
 #[cfg(test)]
 mod tests {
-    use super::*;
     use log::debug;
+
+    use super::*;
+
     #[test]
     fn test_pipeline_crete_run_query_string() {
         let params = ADFPipelineParams::new(

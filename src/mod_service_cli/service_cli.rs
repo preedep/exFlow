@@ -1,7 +1,9 @@
 use clap::Parser;
 use log::info;
+use crate::mod_utils::utils_ex_flow::set_global_apm_tracing;
 
-use crate::mod_utils::utils_exflow::set_global_tracing;
+
+const SERVICE_NAME: &'static str ="ExFlow-Service";
 
 /// Simple program to greet a person
 #[derive(Parser)]
@@ -24,12 +26,13 @@ pub struct ExFlowServiceArgs {
 }
 
 impl ExFlowServiceArgs {
-    pub fn run(&self) {
+    pub fn run(&self) -> std::io::Result<()>{
         info!("Run with Web Server mode");
         info!("ExFlow Runtime starting....");
         info!("Registering.. to exFlow service");
 
         let apm_connection_string = self.apm_connection_string.clone();
-        set_global_tracing(&apm_connection_string);
+        set_global_apm_tracing(apm_connection_string.as_str(),SERVICE_NAME);
+        Ok(())
     }
 }

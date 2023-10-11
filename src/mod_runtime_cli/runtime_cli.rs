@@ -12,9 +12,11 @@ use log::{error, info};
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
 use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
 use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
-use crate::mod_utils::utils_exflow::set_global_tracing;
 
-/// Simple program to greet a person
+
+const SERVICE_NAME: &'static str = "ExFlow-Runtime";
+
+
 #[derive(Parser)]
 #[command(bin_name = "exflow_runtime")]
 #[command(name = "exFlow Runtime")]
@@ -38,7 +40,7 @@ pub enum Commands {
     Runtime {
         /// exFlow Service Endpoint
         #[arg(short, long)]
-        exflow_service_endpoint: String,
+        ex_flow_service_endpoint: String,
 
         /// Run with specific port
         #[arg(short, long, default_value = "8082")]
@@ -247,7 +249,7 @@ impl ExFlowRuntimeArgs {
                 Ok(())
             }
             Some(Commands::Runtime {
-                     exflow_service_endpoint,
+                     ex_flow_service_endpoint: ex_flow_service_endpoint,
                      port_number,
                      apm_connection_string,
                  }) => {
@@ -255,7 +257,7 @@ impl ExFlowRuntimeArgs {
                 info!("ExFlow Runtime starting....");
                 info!("Registering.. to exFlow service");
                 ///
-                set_global_tracing(&apm_connection_string);
+                set_global_apm_tracing(apm_connection_string.as_str(), SERVICE_NAME);
                 ////
                 HttpServer::new(|| {
                     App::new()
