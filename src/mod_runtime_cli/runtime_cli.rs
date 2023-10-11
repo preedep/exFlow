@@ -266,7 +266,7 @@ impl ExFlowRuntimeArgs {
                 set_global_apm_tracing(apm_connection_string.as_str(), SERVICE_NAME);
                 //info!("Registering.. to exFlow service [{}]",ex_flow_service_endpoint);
                 let sys_info = get_system_info();
-                let end_point = format!("http://{}/{}/{}",
+                let end_point = format!("http://{}{}{}",
                                         ex_flow_service_endpoint,
                                         EX_FLOW_SERVICE_API_SCOPE,
                                         EX_FLOW_SERVICE_API_IR_REGISTER);
@@ -290,7 +290,7 @@ impl ExFlowRuntimeArgs {
                         panic!("{}",e);
                     }
                 }
-
+                info!("ExFlow Runtime Started");
                 HttpServer::new(|| {
                     App::new()
                         .wrap(
