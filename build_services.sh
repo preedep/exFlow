@@ -1,1 +1,1 @@
-cargo build --bin exflow_service
+cargo build --bin exflow_service --features exflow_service_required

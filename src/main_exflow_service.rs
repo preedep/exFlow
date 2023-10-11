@@ -3,12 +3,12 @@ use clap::Parser;
 
 mod mod_service_api;
 mod mod_service_cli;
-mod mod_utils;
+mod mod_ex_flow_utils;
 
-#[tokio::main]
-async fn main() {
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
-
     let args = ExFlowServiceArgs::parse();
-    args.run();
+    args.run().await
 }

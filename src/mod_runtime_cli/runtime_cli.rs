@@ -3,8 +3,8 @@ use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
 
-use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
+use actix_web::{middleware, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use clap::{command, Parser, Subcommand};
 use log::{error, info};
@@ -12,10 +12,9 @@ use log::{error, info};
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
 use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
 use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
-
+use crate::mod_ex_flow_utils::utils_ex_flow::set_global_apm_tracing;
 
 const SERVICE_NAME: &'static str = "ExFlow-Runtime";
-
 
 #[derive(Parser)]
 #[command(bin_name = "exflow_runtime")]
@@ -23,11 +22,11 @@ const SERVICE_NAME: &'static str = "ExFlow-Runtime";
 #[command(author = "Preedee Ponchevin <preedee.digital@gmail.com>")]
 #[command(version = "1.0")]
 #[command(
-about = "ExFlow (Extended) Flow , Runtime for integration with ADF , Step Function , etc."
+    about = "ExFlow (Extended) Flow , Runtime for integration with ADF , Step Function , etc."
 )]
 #[command(propagate_version = true)]
 #[command(
-help_template = "{about-section}Version: {version} \n {author} \n\n {usage-heading} {usage} \n {all-args} {tab}"
+    help_template = "{about-section}Version: {version} \n {author} \n\n {usage-heading} {usage} \n {all-args} {tab}"
 )]
 pub struct ExFlowRuntimeArgs {
     #[command(subcommand)]
@@ -119,7 +118,7 @@ pub async fn run_process(
         factory_name.as_str(),
         pipeline_name.as_str(),
     )
-        .await;
+    .await;
 
     match res_run {
         Ok(res) => {
@@ -220,11 +219,11 @@ impl ExFlowRuntimeArgs {
                 Ok(())
             }
             Some(Commands::Cli {
-                     subscription_id,
-                     resource_group_name,
-                     factory_name,
-                     pipeline_name,
-                 }) => {
+                subscription_id,
+                resource_group_name,
+                factory_name,
+                pipeline_name,
+            }) => {
                 info!("Run with CLI arguments");
                 let run_process_result = run_process(
                     subscription_id,
@@ -236,7 +235,7 @@ impl ExFlowRuntimeArgs {
                         info!("{:#?}", response);
                     })),
                 )
-                    .await;
+                .await;
                 match run_process_result {
                     Ok(r) => {
                         info!("Waiting for process [{}] to finish", r.run_id);
@@ -249,13 +248,13 @@ impl ExFlowRuntimeArgs {
                 Ok(())
             }
             Some(Commands::Runtime {
-                     ex_flow_service_endpoint: ex_flow_service_endpoint,
-                     port_number,
-                     apm_connection_string,
-                 }) => {
+                ex_flow_service_endpoint,
+                port_number,
+                apm_connection_string,
+            }) => {
                 info!("Run with Web Server mode");
                 info!("ExFlow Runtime starting....");
-                info!("Registering.. to exFlow service");
+                info!("Registering.. to exFlow service [{}]",ex_flow_service_endpoint);
                 ///
                 set_global_apm_tracing(apm_connection_string.as_str(), SERVICE_NAME);
                 ////
@@ -276,10 +275,10 @@ impl ExFlowRuntimeArgs {
                                 .route("/get_status", web::get().to(get_status_pipeline)),
                         )
                 })
-                    .workers(10)
-                    .bind(("0.0.0.0", *port_number))?
-                    .run()
-                    .await
+                .workers(10)
+                .bind(("0.0.0.0", *port_number))?
+                .run()
+                .await
             }
         }
     }

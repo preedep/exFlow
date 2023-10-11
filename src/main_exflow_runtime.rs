@@ -3,7 +3,7 @@ use clap::Parser;
 use crate::mod_runtime_cli::runtime_cli::ExFlowRuntimeArgs;
 
 
-mod mod_utils;
+mod mod_ex_flow_utils;
 mod mod_azure;
 mod mod_runtime_api;
 mod mod_runtime_cli;

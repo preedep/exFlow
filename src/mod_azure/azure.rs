@@ -6,7 +6,7 @@ use azure_core::auth::{TokenCredential, TokenResponse};
 use azure_identity::DefaultAzureCredential;
 use chrono::Utc;
 use log::{debug, error};
-use serde::{Deserialize, Serialize};
+
 
 use crate::mod_azure::entities::{
     ADFCreateRunResponse, ADFPipelineParams, ADFPipelineRunResponse, ADFResult,
