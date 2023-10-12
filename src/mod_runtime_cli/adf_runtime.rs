@@ -8,7 +8,7 @@ use log::{error, info};
 use serde::{Deserialize, Serialize};
 
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
-use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
+use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus, AzureCloudError};
 use crate::mod_ex_flow_utils::entities::ExFlowError;
 use crate::mod_ex_flow_utils::utils_ex_flow::string_to_static_str;
 use crate::mod_runtime_cli::interface_runtime::{
@@ -82,13 +82,18 @@ impl ExFlowRuntimeActivityExecutor<ExFlowRuntimeActivityADFParam>
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 struct RunProcessError {
     pub error_message: String,
+    pub azure_error: Option<AzureCloudError>,
 }
 impl RunProcessError {
     pub fn new(error_message: String) -> Self {
-        RunProcessError { error_message }
+        RunProcessError { error_message, azure_error: None }
+    }
+    pub fn add_adf_error(&mut self,adf_error: &AzureCloudError) -> Self {
+        self.azure_error = Some(adf_error.clone());
+        self.clone()
     }
 }
 impl Display for RunProcessError {
@@ -206,8 +211,8 @@ async fn adf_run_process(
         Err(e) => {
             error!("{:?}", e);
             Err(RunProcessError::new(
-                e.error_cloud.unwrap().error_message.unwrap(),
-            ))
+                "Run Process Error".to_string(),
+            ).add_adf_error(&e))
         }
     }
 }
