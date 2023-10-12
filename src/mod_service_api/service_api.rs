@@ -1,4 +1,4 @@
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{HttpResponse, Responder, web};
 use log::debug;
 use tracing_attributes::instrument;
 

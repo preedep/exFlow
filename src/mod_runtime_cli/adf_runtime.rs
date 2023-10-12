@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
 use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus, AzureCloudError};
 use crate::mod_ex_flow_utils::entities::ExFlowError;
+use crate::mod_ex_flow_utils::errors::RUNTIME_ERROR;
 use crate::mod_ex_flow_utils::utils_ex_flow::string_to_static_str;
 use crate::mod_runtime_cli::interface_runtime::{
     ExFlowRuntimeActivityExecutor, ExFlowRuntimeActivityExecutorResult, ExFlowRuntimeActivityResult,
@@ -67,7 +68,7 @@ impl ExFlowRuntimeActivityExecutor<ExFlowRuntimeActivityADFParam>
             &activity.factory_name,
             &activity.pipeline_name,
             activity.callback_waiting_sec_time,
-            Some(Box::new(move |response| {
+            Some(Box::new(move |response,error| {
                 info!("{:#?}", response);
             })),
         )
@@ -78,7 +79,11 @@ impl ExFlowRuntimeActivityExecutor<ExFlowRuntimeActivityADFParam>
                 let result = ExFlowRuntimeActivityResult { run_id: r.run_id };
                 (result, r.join_handle)
             })
-            .map_err(|e| ExFlowError::new(string_to_static_str(&e.error_message)))
+            .map_err(|e|
+                ExFlowError::new(
+                    string_to_static_str(&e.error_message)
+                )
+            )
     }
 }
 
@@ -114,7 +119,7 @@ async fn adf_run_process(
     factory_name: &String,
     pipeline_name: &String,
     waiting_sec_time: u64,
-    callback_fn: Option<Box<dyn Fn(&ADFPipelineRunResponse) + Send>>,
+    callback_fn: Option<Box<dyn Fn(&ADFPipelineRunResponse,&Option<AzureCloudError>) + Send>>,
 ) -> RunProcessResult<RunProcessJoinHandle> {
     let access_token_response = get_azure_access_token_from(None, None).await.unwrap();
     let res_run = adf_pipelines_run(
@@ -160,7 +165,7 @@ async fn adf_run_process(
                                         match callback_fn.as_ref() {
                                             None => {}
                                             Some(callback) => {
-                                                callback(&r);
+                                                callback(&r,&None);
                                             }
                                         }
                                         true
@@ -171,7 +176,7 @@ async fn adf_run_process(
                                         match callback_fn.as_ref() {
                                             None => {}
                                             Some(callback) => {
-                                                callback(&r);
+                                                callback(&r,&None);
                                             }
                                         }
                                         false
@@ -184,7 +189,7 @@ async fn adf_run_process(
                                         match callback_fn.as_ref() {
                                             None => {}
                                             Some(callback) => {
-                                                callback(&r);
+                                                callback(&r,&None);
                                             }
                                         }
                                         false
@@ -193,6 +198,23 @@ async fn adf_run_process(
                             }
                             Err(e) => {
                                 error!("{:#?}", e);
+                                match callback_fn.as_ref() {
+                                    None => {}
+                                    Some(callback) => {
+                                        callback(&ADFPipelineRunResponse{
+                                            run_id: None,
+                                            pipeline_name: None,
+                                            parameters: None,
+                                            invoked_by: None,
+                                            run_start: None,
+                                            run_end: None,
+                                            duration_in_ms: None,
+                                            status: Some(ADFPipelineRunStatus::Failed),
+                                            message: None,
+                                            last_updated: None,
+                                        }, &Some(e));
+                                    }
+                                }
                                 false
                             }
                         };
@@ -211,7 +233,7 @@ async fn adf_run_process(
         Err(e) => {
             error!("{:?}", e);
             Err(RunProcessError::new(
-                "Run Process Error".to_string(),
+                RUNTIME_ERROR.to_string(),
             ).add_adf_error(&e))
         }
     }

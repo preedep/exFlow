@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
+use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
-use actix_web::{middleware, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use clap::{command, Parser, Subcommand};
 use http::StatusCode;
@@ -14,7 +14,7 @@ use crate::mod_ex_flow_utils::uri::{
 use crate::mod_ex_flow_utils::utils_ex_flow::{get_system_info, set_global_apm_tracing};
 use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
 use crate::mod_runtime_cli::adf_runtime::{
-    ExFlowRuntimeADFActivityExecutor, ExFlowRuntimeActivityADFParam,
+    ExFlowRuntimeActivityADFParam, ExFlowRuntimeADFActivityExecutor,
 };
 use crate::mod_runtime_cli::interface_runtime::ExFlowRuntimeActivityExecutor;
 use crate::mod_service_api::entities::ExFlowRuntimeRegisterRequest;

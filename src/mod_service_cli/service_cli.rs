@@ -1,5 +1,5 @@
+use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
-use actix_web::{middleware, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use clap::Parser;
 use log::info;
