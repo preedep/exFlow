@@ -1,7 +1,4 @@
-use std::fmt::{Display, Formatter};
-use std::thread;
-use std::thread::JoinHandle;
-use std::time::Duration;
+use std::fmt::Display;
 
 use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
@@ -10,13 +7,11 @@ use clap::{command, Parser, Subcommand};
 use http::StatusCode;
 use log::{debug, error, info};
 
-use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
-use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
 use crate::mod_ex_flow_utils::uri::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
 use crate::mod_ex_flow_utils::utils_ex_flow::{get_system_info, set_global_apm_tracing};
 use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
 use crate::mod_runtime_cli::adf_runtime::ExFlowRuntimeADFActivityExecutor;
-use crate::mod_runtime_cli::interface_runtime::{ExFlowRuntimeActivityADFParam, ExFlowRuntimeActivityExecutor, ExFlowRuntimeActivityExecutorResult};
+use crate::mod_runtime_cli::interface_runtime::{ExFlowRuntimeActivityADFParam, ExFlowRuntimeActivityExecutor};
 use crate::mod_service_api::entities::ExFlowRuntimeRegisterRequest;
 
 const SERVICE_NAME: &'static str = "ExFlow-Runtime";
@@ -75,6 +70,7 @@ pub enum Commands {
         pipeline_name: String,
     },
 }
+
 impl ExFlowRuntimeArgs {
     pub async fn run(&self) -> std::io::Result<()> {
         match &self.command {
@@ -90,7 +86,7 @@ impl ExFlowRuntimeArgs {
                  }) => {
                 info!("Run with CLI arguments");
 
-                let param  = ExFlowRuntimeActivityADFParam::new(
+                let param = ExFlowRuntimeActivityADFParam::new(
                     subscription_id,
                     resource_group_name,
                     factory_name,
@@ -100,7 +96,7 @@ impl ExFlowRuntimeArgs {
                 let runtime_executor =
                     ExFlowRuntimeADFActivityExecutor::new();
 
-                let  runtime_res=
+                let runtime_res =
                     runtime_executor.run(&param).await;
                 match runtime_res {
                     Ok(r) => {
@@ -133,10 +129,9 @@ impl ExFlowRuntimeArgs {
 
                 match sys_info {
                     Ok(s) => {
+                        let request = ExFlowRuntimeRegisterRequest::new(client_id.as_str(), &s);
 
-                        let request = ExFlowRuntimeRegisterRequest::new(client_id.as_str(),&s);
-
-                        let  register_res= reqwest::Client::new()
+                        let register_res = reqwest::Client::new()
                             .post(end_point)
                             .json(&request)
                             .send().await;
@@ -144,19 +139,19 @@ impl ExFlowRuntimeArgs {
                         match register_res {
                             Ok(r) => {
                                 let is_register_complete = r.status() == StatusCode::OK;
-                                if  is_register_complete {
+                                if is_register_complete {
                                     info!("Registering... to exFlow service [{:#?}]",r);
-                                }else{
-                                    panic!("Cannot register ExFlowRuntime : {:#?}",r);
+                                } else {
+                                    panic!("Cannot register ExFlowRuntime : {:#?}", r);
                                 }
                             }
                             Err(e) => {
-                                panic!("Cannot register ExFlowRuntime {:?}",e);
+                                panic!("Cannot register ExFlowRuntime {:?}", e);
                             }
                         }
                     }
                     Err(e) => {
-                        panic!("Get system info failed : {}",e);
+                        panic!("Get system info failed : {}", e);
                     }
                 }
                 info!("ExFlow Runtime Started");
