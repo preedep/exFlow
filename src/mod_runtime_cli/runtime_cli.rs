@@ -102,7 +102,15 @@ impl ExFlowRuntimeArgs {
 
                 let  runtime_res=
                     runtime_executor.run(&param).await;
-
+                match runtime_res {
+                    Ok(r) => {
+                        info!("Run with CLI arguments successfully > run_id [{:#?}]",r.0.run_id);
+                        r.1.join().expect("Runtime activity waiting failed");
+                    }
+                    Err(e) => {
+                        error!("Runtime activity failed : {:#?}",e);
+                    }
+                }
                 Ok(())
             }
             Some(Commands::Runtime {
