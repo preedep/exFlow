@@ -4,7 +4,12 @@ use sysinfo::{NetworkExt, System, SystemExt};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::Registry;
 
-use crate::mod_ex_flow_utils::entities::SystemInformation;
+use crate::mod_ex_flow_utils::entities::{ExFlowError, SystemInformation};
+
+
+
+type ExFlowResult<T> = Result<T,ExFlowError>;
+
 
 pub fn set_global_apm_tracing(apm_connection_string: &str, service_name: &str) {
     if apm_connection_string.len() > 0 {
@@ -23,7 +28,8 @@ pub fn set_global_apm_tracing(apm_connection_string: &str, service_name: &str) {
     }
 }
 
-pub fn get_system_info() -> SystemInformation {
+
+pub fn get_system_info() -> ExFlowResult<SystemInformation> {
     debug!("get_system_info");
 
     // Please note that we use "new_all" to ensure that all list of
@@ -39,7 +45,6 @@ pub fn get_system_info() -> SystemInformation {
     for disk in sys.disks() {
         println!("{:?}", disk);
     }
-
     // Network interfaces name, data received and data transmitted:
     debug!("=> networks:");
     for (interface_name, data) in sys.networks() {
@@ -50,7 +55,6 @@ pub fn get_system_info() -> SystemInformation {
             data.transmitted()
         );
     }
-
     // Components temperature:
     debug!("=> components:");
     for component in sys.components() {
@@ -73,11 +77,11 @@ pub fn get_system_info() -> SystemInformation {
     // Number of CPUs:
     debug!("NB CPUs: {}", sys.cpus().len());
 
-
-    let my_local_ip = local_ip().unwrap();
-
-    debug!("This is my local IP address: {:?}", my_local_ip);
-
-    SystemInformation::new(&sys.host_name().unwrap_or("".to_string()).as_str(),
-                           my_local_ip.to_string().as_str())
+    let my_local_ip = local_ip();
+    my_local_ip.map_err(|e|{
+        ExFlowError::new("Error")
+    }).map(|r|{
+        SystemInformation::new(&sys.host_name().unwrap_or("".to_string()).as_str(),
+        r.to_string().as_str())
+    })
 }

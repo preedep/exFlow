@@ -1,4 +1,21 @@
+use std::fmt::{Display, Formatter};
+use derive_more::Error;
 use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone,Error, Serialize, Deserialize)]
+pub struct ExFlowError {
+
+}
+impl ExFlowError {
+    pub fn new(msg: &'static str) -> Self {
+        ExFlowError {}
+    }
+}
+impl Display for ExFlowError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ExFlowError")
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SystemInformation {

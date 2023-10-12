@@ -270,23 +270,33 @@ impl ExFlowRuntimeArgs {
                                         EX_FLOW_SERVICE_API_SCOPE,
                                         EX_FLOW_SERVICE_API_IR_REGISTER);
                 debug!("Registering... to exFlow service [{}]",end_point);
-                let request = ExFlowRuntimeRegisterRequest::new(client_id.as_str(),&sys_info);
 
-                let  register_res= reqwest::Client::new()
-                    .post(end_point)
-                    .json(&request)
-                    .send().await;
-                match register_res {
-                    Ok(r) => {
-                        if r.status() == StatusCode::OK {
-                            info!("Registering... to exFlow service [{:#?}]",r);
-                        }else{
-                            panic!("Cannot register ExFlowRuntime : {:#?}",r);
+                match sys_info {
+                    Ok(s) => {
+
+                        let request = ExFlowRuntimeRegisterRequest::new(client_id.as_str(),&s);
+
+                        let  register_res= reqwest::Client::new()
+                            .post(end_point)
+                            .json(&request)
+                            .send().await;
+
+                        match register_res {
+                            Ok(r) => {
+                                let is_register_complete = r.status() == StatusCode::OK;
+                                if  is_register_complete {
+                                    info!("Registering... to exFlow service [{:#?}]",r);
+                                }else{
+                                    panic!("Cannot register ExFlowRuntime : {:#?}",r);
+                                }
+                            }
+                            Err(e) => {
+                                panic!("Cannot register ExFlowRuntime {:?}",e);
+                            }
                         }
                     }
                     Err(e) => {
-                        error!("Cannot register ExFlowRuntime : {:?}",e);
-                        panic!("{}",e);
+                        panic!("Get system info failed : {}",e);
                     }
                 }
                 info!("ExFlow Runtime Started");
