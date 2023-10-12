@@ -10,39 +10,45 @@ use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_ac
 use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
 use crate::mod_ex_flow_utils::entities::ExFlowError;
 use crate::mod_ex_flow_utils::utils_ex_flow::string_to_static_str;
-use crate::mod_runtime_cli::interface_runtime::{ExFlowRuntimeActivityADFParam, ExFlowRuntimeActivityExecutor, ExFlowRuntimeActivityExecutorResult, ExFlowRuntimeActivityResult};
+use crate::mod_runtime_cli::interface_runtime::{
+    ExFlowRuntimeActivityADFParam, ExFlowRuntimeActivityExecutor,
+    ExFlowRuntimeActivityExecutorResult, ExFlowRuntimeActivityResult,
+};
 
 pub struct ExFlowRuntimeADFActivityExecutor;
 
 impl ExFlowRuntimeADFActivityExecutor {
-    pub fn new() -> Self{
-        ExFlowRuntimeADFActivityExecutor{
-        }
+    pub fn new() -> Self {
+        ExFlowRuntimeADFActivityExecutor {}
     }
 }
 #[async_trait]
-impl ExFlowRuntimeActivityExecutor<ExFlowRuntimeActivityADFParam> for ExFlowRuntimeADFActivityExecutor {
-    type ItemResult = (ExFlowRuntimeActivityResult,JoinHandle<()>);
-    async fn run(&self, activity: &ExFlowRuntimeActivityADFParam) -> ExFlowRuntimeActivityExecutorResult<Self::ItemResult> {
-        let result = adf_run_process(&activity.subscription_id,
-        &activity.resource_group_name,
-        &activity.factory_name,
-        &activity.pipeline_name,
-        activity.callback_waiting_sec_time,
-                    Some(Box::new(move |response| {
-                        info!("{:#?}", response);
-                    }))).await;
+impl ExFlowRuntimeActivityExecutor<ExFlowRuntimeActivityADFParam>
+    for ExFlowRuntimeADFActivityExecutor
+{
+    type ItemResult = (ExFlowRuntimeActivityResult, JoinHandle<()>);
+    async fn run(
+        &self,
+        activity: &ExFlowRuntimeActivityADFParam,
+    ) -> ExFlowRuntimeActivityExecutorResult<Self::ItemResult> {
+        let result = adf_run_process(
+            &activity.subscription_id,
+            &activity.resource_group_name,
+            &activity.factory_name,
+            &activity.pipeline_name,
+            activity.callback_waiting_sec_time,
+            Some(Box::new(move |response| {
+                info!("{:#?}", response);
+            })),
+        )
+        .await;
 
-        result.map(|r|{
-            let result = ExFlowRuntimeActivityResult{
-                run_id: r.run_id,
-            };
-            (result,r.join_handle)
-        }).map_err(|e|{
-            ExFlowError::new(
-                string_to_static_str(&e.error_message)
-            )
-        })
+        result
+            .map(|r| {
+                let result = ExFlowRuntimeActivityResult { run_id: r.run_id };
+                (result, r.join_handle)
+            })
+            .map_err(|e| ExFlowError::new(string_to_static_str(&e.error_message)))
     }
 }
 
@@ -83,7 +89,7 @@ async fn adf_run_process(
         factory_name.as_str(),
         pipeline_name.as_str(),
     )
-        .await;
+    .await;
 
     match res_run {
         Ok(res) => {
@@ -175,4 +181,3 @@ async fn adf_run_process(
         }
     }
 }
-

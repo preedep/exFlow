@@ -3,13 +3,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::mod_ex_flow_utils::entities::ExFlowError;
 
-#[derive(Debug,Clone,Serialize,Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExFlowRuntimeActivityResult {
-    pub run_id : String,
+    pub run_id: String,
 }
 
-pub type ExFlowRuntimeActivityExecutorResult<T> = Result<T,ExFlowError>;
-#[derive(Debug,Clone,Serialize,Deserialize)]
+pub type ExFlowRuntimeActivityExecutorResult<T> = Result<T, ExFlowError>;
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExFlowRuntimeActivityADFParam {
     pub subscription_id: String,
     pub resource_group_name: String,
@@ -19,14 +19,15 @@ pub struct ExFlowRuntimeActivityADFParam {
     pub callback_url: Option<String>,
 }
 impl ExFlowRuntimeActivityADFParam {
-     pub fn new(subscription_id: &str,
-               resource_group_name: &str,
-               factory_name: &str,
-               pipeline_name: &str,
-               callback_waiting_sec_time: u64,
-                callback_url: Option<String>,
-     ) -> Self {
-        ExFlowRuntimeActivityADFParam{
+    pub fn new(
+        subscription_id: &str,
+        resource_group_name: &str,
+        factory_name: &str,
+        pipeline_name: &str,
+        callback_waiting_sec_time: u64,
+        callback_url: Option<String>,
+    ) -> Self {
+        ExFlowRuntimeActivityADFParam {
             subscription_id: subscription_id.to_string(),
             resource_group_name: resource_group_name.to_string(),
             factory_name: factory_name.to_string(),
@@ -49,5 +50,5 @@ pub trait RunProcessCallback {
 #[async_trait]
 pub trait ExFlowRuntimeActivityExecutor<T> {
     type ItemResult;
-     async fn run(&self,activity: &T) -> ExFlowRuntimeActivityExecutorResult<Self::ItemResult>;
+    async fn run(&self, activity: &T) -> ExFlowRuntimeActivityExecutorResult<Self::ItemResult>;
 }

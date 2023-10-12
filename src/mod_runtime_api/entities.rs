@@ -1,5 +1,5 @@
-use actix_web::{error, HttpRequest, HttpResponse, Responder};
 use actix_web::body::BoxBody;
+use actix_web::{error, HttpRequest, HttpResponse, Responder};
 use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
 
@@ -58,9 +58,9 @@ pub enum ActivityType {
 impl ToString for ActivityType {
     fn to_string(&self) -> String {
         match self {
-            ActivityType::RunTimeAdf => {"RunTimeAdf".to_string()}
-            ActivityType::RuntimeApi => {"RuntimeApi".to_string()}
-            ActivityType::RuntimeCli => {"RuntimeCli".to_string()}
+            ActivityType::RunTimeAdf => "RunTimeAdf".to_string(),
+            ActivityType::RuntimeApi => "RuntimeApi".to_string(),
+            ActivityType::RuntimeCli => "RuntimeCli".to_string(),
         }
     }
 }
@@ -70,5 +70,5 @@ pub struct ExFlowRuntimeActivityWebRequest {
     pub activity_type: ActivityType,
 
     #[serde(rename = "runtime_activity_adf_request")]
-    pub adf_request : Option<PipelineRunRequest>
+    pub adf_request: Option<PipelineRunRequest>,
 }

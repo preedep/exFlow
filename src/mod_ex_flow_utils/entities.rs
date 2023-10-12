@@ -3,10 +3,8 @@ use std::fmt::{Display, Formatter};
 use derive_more::Error;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone,Error, Serialize, Deserialize)]
-pub struct ExFlowError {
-
-}
+#[derive(Debug, Clone, Error, Serialize, Deserialize)]
+pub struct ExFlowError {}
 impl ExFlowError {
     pub fn new(msg: &'static str) -> Self {
         ExFlowError {}

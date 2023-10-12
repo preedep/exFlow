@@ -1,5 +1,5 @@
-use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
+use actix_web::{middleware, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use clap::Parser;
 use log::info;
@@ -19,7 +19,7 @@ const SERVICE_NAME: &'static str = "ExFlow-Service";
 #[command(about = "ExFlow (Extended) Flow Service, It's core module web service.")]
 #[command(propagate_version = true)]
 #[command(
-help_template = "{about-section}Version: {version} \n {author} \n\n {usage-heading} {usage} \n {all-args} {tab}"
+    help_template = "{about-section}Version: {version} \n {author} \n\n {usage-heading} {usage} \n {all-args} {tab}"
 )]
 pub struct ExFlowServiceArgs {
     /// Run with specific port
@@ -41,23 +41,20 @@ impl ExFlowServiceArgs {
 
         HttpServer::new(|| {
             App::new()
-                .wrap(
-                    middleware::DefaultHeaders::new()
-                        .add(("ExFlow-Runtime-X-Version", "0.1")),
-                )
+                .wrap(middleware::DefaultHeaders::new().add(("ExFlow-Runtime-X-Version", "0.1")))
                 .wrap(Logger::default())
                 .wrap(Logger::new(
                     r#"%a %t "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#,
                 ))
                 .wrap(RequestTracing::new())
-                .service(
-                    web::scope(EX_FLOW_SERVICE_API_SCOPE)
-                        .route(EX_FLOW_SERVICE_API_IR_REGISTER, web::post().to(post_register_runtime))
-                )
+                .service(web::scope(EX_FLOW_SERVICE_API_SCOPE).route(
+                    EX_FLOW_SERVICE_API_IR_REGISTER,
+                    web::post().to(post_register_runtime),
+                ))
         })
-            .workers(10)
-            .bind(("0.0.0.0", self.port_number))?
-            .run()
-            .await
+        .workers(10)
+        .bind(("0.0.0.0", self.port_number))?
+        .run()
+        .await
     }
 }
