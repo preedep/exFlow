@@ -7,7 +7,7 @@ use clap::{command, Parser, Subcommand};
 use http::StatusCode;
 use log::{debug, error, info};
 
-use crate::mod_ex_flow_utils::uri::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
+use crate::mod_ex_flow_utils::uri::{EX_FLOW_RUNTIME_API_GET_PIPELINE, EX_FLOW_RUNTIME_API_RUN_PIPELINE, EX_FLOW_RUNTIME_API_SCOPE, EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
 use crate::mod_ex_flow_utils::utils_ex_flow::{get_system_info, set_global_apm_tracing};
 use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
 use crate::mod_runtime_cli::adf_runtime::ExFlowRuntimeADFActivityExecutor;
@@ -168,10 +168,10 @@ impl ExFlowRuntimeArgs {
                         ))
                         .wrap(RequestTracing::new())
                         .service(
-                            web::scope("/api/v1")
-                                .route("/run_pipeline",
+                            web::scope(EX_FLOW_RUNTIME_API_SCOPE)
+                                .route(EX_FLOW_RUNTIME_API_RUN_PIPELINE,
                                        web::post().to(post_run_pipeline))
-                                .route("/get_status",
+                                .route(EX_FLOW_RUNTIME_API_GET_PIPELINE,
                                        web::get().to(get_status_pipeline)),
                         )
                 })
