@@ -2,8 +2,10 @@ use std::fmt::{Display, Formatter};
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
+
 use async_trait::async_trait;
-use log::{debug, error, info};
+use log::{error, info};
+
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
 use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
 use crate::mod_ex_flow_utils::entities::ExFlowError;
@@ -15,7 +17,6 @@ pub struct ExFlowRuntimeADFActivityExecutor;
 impl ExFlowRuntimeADFActivityExecutor {
     pub fn new() -> Self{
         ExFlowRuntimeADFActivityExecutor{
-
         }
     }
 }
@@ -30,16 +31,6 @@ impl ExFlowRuntimeActivityExecutor<ExFlowRuntimeActivityADFParam> for ExFlowRunt
         activity.callback_waiting_sec_time,
                     Some(Box::new(move |response| {
                         info!("{:#?}", response);
-                        /*
-                        match &activity.callback_url {
-                            None => {}
-                            Some(url) => {
-                                if url.len() > 0 {
-                                    debug!("try to post callback url {}", url);
-                                }
-                            }
-                        }
-                        */
                     }))).await;
 
         result.map(|r|{

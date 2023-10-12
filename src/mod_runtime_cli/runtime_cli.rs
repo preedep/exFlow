@@ -169,8 +169,10 @@ impl ExFlowRuntimeArgs {
                         .wrap(RequestTracing::new())
                         .service(
                             web::scope("/api/v1")
-                                .route("/run_pipeline", web::post().to(post_run_pipeline))
-                                .route("/get_status", web::get().to(get_status_pipeline)),
+                                .route("/run_pipeline",
+                                       web::post().to(post_run_pipeline))
+                                .route("/get_status",
+                                       web::get().to(get_status_pipeline)),
                         )
                 })
                     .workers(10)
