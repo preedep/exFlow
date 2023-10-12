@@ -5,16 +5,47 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use log::{error, info};
+use serde::{Deserialize, Serialize};
 
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
 use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
 use crate::mod_ex_flow_utils::entities::ExFlowError;
 use crate::mod_ex_flow_utils::utils_ex_flow::string_to_static_str;
 use crate::mod_runtime_cli::interface_runtime::{
-    ExFlowRuntimeActivityADFParam, ExFlowRuntimeActivityExecutor,
+     ExFlowRuntimeActivityExecutor,
     ExFlowRuntimeActivityExecutorResult, ExFlowRuntimeActivityResult,
 };
 
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExFlowRuntimeActivityADFParam {
+    pub subscription_id: String,
+    pub resource_group_name: String,
+    pub factory_name: String,
+    pub pipeline_name: String,
+    pub callback_waiting_sec_time: u64,
+    pub callback_url: Option<String>,
+}
+impl ExFlowRuntimeActivityADFParam {
+    pub fn new(
+        subscription_id: &str,
+        resource_group_name: &str,
+        factory_name: &str,
+        pipeline_name: &str,
+        callback_waiting_sec_time: u64,
+        callback_url: Option<String>,
+    ) -> Self {
+        ExFlowRuntimeActivityADFParam {
+            subscription_id: subscription_id.to_string(),
+            resource_group_name: resource_group_name.to_string(),
+            factory_name: factory_name.to_string(),
+            pipeline_name: pipeline_name.to_string(),
+            callback_waiting_sec_time,
+
+            callback_url,
+        }
+    }
+}
 pub struct ExFlowRuntimeADFActivityExecutor;
 
 impl ExFlowRuntimeADFActivityExecutor {
@@ -22,6 +53,8 @@ impl ExFlowRuntimeADFActivityExecutor {
         ExFlowRuntimeADFActivityExecutor {}
     }
 }
+
+
 #[async_trait]
 impl ExFlowRuntimeActivityExecutor<ExFlowRuntimeActivityADFParam>
     for ExFlowRuntimeADFActivityExecutor

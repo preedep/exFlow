@@ -13,9 +13,9 @@ use crate::mod_ex_flow_utils::uri::{
 };
 use crate::mod_ex_flow_utils::utils_ex_flow::{get_system_info, set_global_apm_tracing};
 use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
-use crate::mod_runtime_cli::adf_runtime::ExFlowRuntimeADFActivityExecutor;
+use crate::mod_runtime_cli::adf_runtime::{ExFlowRuntimeActivityADFParam, ExFlowRuntimeADFActivityExecutor};
 use crate::mod_runtime_cli::interface_runtime::{
-    ExFlowRuntimeActivityADFParam, ExFlowRuntimeActivityExecutor,
+    ExFlowRuntimeActivityExecutor,
 };
 use crate::mod_service_api::entities::ExFlowRuntimeRegisterRequest;
 
