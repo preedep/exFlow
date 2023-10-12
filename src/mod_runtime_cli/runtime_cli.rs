@@ -153,7 +153,6 @@ impl ExFlowRuntimeArgs {
                 match sys_info {
                     Ok(s) => {
                         let request = ExFlowRuntimeRegisterRequest::new(client_id.as_str(), &s);
-
                         let register_res = reqwest::Client::new()
                             .post(end_point)
                             .json(&request)
