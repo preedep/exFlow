@@ -1,11 +1,12 @@
 use actix_web::{HttpResponse, Responder, web};
-use log::info;
 use tracing_attributes::instrument;
 
 use crate::mod_runtime_api::entities::{
     ExFlowWebRuntimeError, PipelineRunRequest, PipelineRunResponse,
 };
-use crate::mod_runtime_cli::runtime_cli::run_process;
+
+use crate::mod_runtime_cli::adf_runtime::ExFlowRuntimeADFActivityExecutor;
+use crate::mod_runtime_cli::interface_runtime::{ExFlowRuntimeActivityADFParam, ExFlowRuntimeActivityExecutor};
 
 type ExFlowWebRuntimeResult<T> = Result<T, ExFlowWebRuntimeError>;
 
@@ -16,6 +17,7 @@ pub async fn post_run_pipeline(
     //
     // Call run_process is same CLI
     //
+    /*
     let result = run_process(
         &request.subscription_id,
         &request.resource_group_name,
@@ -27,11 +29,24 @@ pub async fn post_run_pipeline(
         })),
     )
         .await;
-
-    result
-        .map(|result| PipelineRunResponse {
-            run_id: result.run_id,
-        })
+*/
+    let param  = ExFlowRuntimeActivityADFParam::new(
+        &request.subscription_id,
+        &request.resource_group_name,
+        &request.factory_name,
+        &request.pipeline_name,
+        3u64,
+    );
+    let runtime_executor =
+        ExFlowRuntimeADFActivityExecutor::new();
+    let  runtime_res=
+        runtime_executor.run(&param).await;
+    runtime_res
+        .map(|result|{
+            PipelineRunResponse{
+                run_id: result.0.run_id,
+            }
+        } )
         .map_err(|e| ExFlowWebRuntimeError::new(e.to_string()))
 }
 

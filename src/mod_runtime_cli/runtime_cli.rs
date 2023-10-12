@@ -15,6 +15,8 @@ use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
 use crate::mod_ex_flow_utils::uri::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
 use crate::mod_ex_flow_utils::utils_ex_flow::{get_system_info, set_global_apm_tracing};
 use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
+use crate::mod_runtime_cli::adf_runtime::ExFlowRuntimeADFActivityExecutor;
+use crate::mod_runtime_cli::interface_runtime::{ExFlowRuntimeActivityADFParam, ExFlowRuntimeActivityExecutor, ExFlowRuntimeActivityExecutorResult};
 use crate::mod_service_api::entities::ExFlowRuntimeRegisterRequest;
 
 const SERVICE_NAME: &'static str = "ExFlow-Runtime";
@@ -73,150 +75,6 @@ pub enum Commands {
         pipeline_name: String,
     },
 }
-
-#[derive(Debug)]
-pub struct RunProcessError {
-    pub error_message: String,
-}
-
-impl RunProcessError {
-    pub fn new(error_message: String) -> Self {
-        RunProcessError { error_message }
-    }
-}
-
-impl Display for RunProcessError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:#?}", self)
-    }
-}
-
-pub struct RunProcessJoinHandle {
-    pub run_id: String,
-    pub join_handle: JoinHandle<()>,
-}
-
-pub type RunProcessResult<T> = Result<T, RunProcessError>;
-
-pub trait RunProcessCallback {
-    fn on_completed(&self);
-    fn on_failed(&self);
-    fn on_running(&self);
-}
-
-fn string_to_static_str(s: &String) -> &'static str {
-    Box::leak(s.clone().into_boxed_str())
-}
-
-pub async fn run_process(
-    subscription_id: &String,
-    resource_group_name: &String,
-    factory_name: &String,
-    pipeline_name: &String,
-    waiting_sec_time: u64,
-    callback_fn: Option<Box<dyn Fn(&ADFPipelineRunResponse) + Send>>,
-) -> RunProcessResult<RunProcessJoinHandle> {
-    let access_token_response = get_azure_access_token_from(None, None).await.unwrap();
-    let res_run = adf_pipelines_run(
-        &access_token_response,
-        subscription_id.as_str(),
-        resource_group_name.as_str(),
-        factory_name.as_str(),
-        pipeline_name.as_str(),
-    )
-        .await;
-
-    match res_run {
-        Ok(res) => {
-            let s = string_to_static_str(subscription_id);
-            let r = string_to_static_str(resource_group_name);
-            let f = string_to_static_str(factory_name);
-            let run_id = string_to_static_str(&res.run_id);
-
-            let sender = thread::spawn(move || {
-                let rt = tokio::runtime::Builder::new_multi_thread()
-                    .enable_all()
-                    .build()
-                    .unwrap();
-                rt.block_on(async {
-                    loop {
-                        async_std::task::sleep(Duration::from_secs(waiting_sec_time)).await;
-                        //sleep(Duration::from_secs(waiting_sec_time));
-                        let access_token_response =
-                            get_azure_access_token_from(Some(access_token_response.clone()), None)
-                                .await
-                                .unwrap();
-
-                        let res_get =
-                            adf_pipelines_get(&access_token_response, s, r, f, run_id).await;
-
-                        let is_running = match res_get {
-                            Ok(r) => {
-                                match r.to_owned().status.unwrap_or(ADFPipelineRunStatus::Failed) {
-                                    ADFPipelineRunStatus::Queued
-                                    | ADFPipelineRunStatus::InProgress => {
-                                        //info!("{:#?}", r);
-                                        //running
-                                        match callback_fn.as_ref() {
-                                            None => {}
-                                            Some(callback) => {
-                                                callback(&r);
-                                            }
-                                        }
-                                        true
-                                    }
-                                    ADFPipelineRunStatus::Succeeded => {
-                                        //info!("{:#?}", r);
-                                        //finish the pipeline
-                                        match callback_fn.as_ref() {
-                                            None => {}
-                                            Some(callback) => {
-                                                callback(&r);
-                                            }
-                                        }
-                                        false
-                                    }
-                                    ADFPipelineRunStatus::Failed
-                                    | ADFPipelineRunStatus::Canceling
-                                    | ADFPipelineRunStatus::Cancelled => {
-                                        //finish the pipeline with error
-                                        //error!("{:#?}", r);
-                                        match callback_fn.as_ref() {
-                                            None => {}
-                                            Some(callback) => {
-                                                callback(&r);
-                                            }
-                                        }
-                                        false
-                                    }
-                                }
-                            }
-                            Err(e) => {
-                                error!("{:#?}", e);
-                                false
-                            }
-                        };
-                        if !is_running {
-                            break;
-                        }
-                    }
-                });
-            });
-            let res_process = RunProcessJoinHandle {
-                run_id: run_id.to_string(),
-                join_handle: sender,
-            };
-            Ok(res_process)
-        }
-        Err(e) => {
-            error!("{:?}", e);
-            Err(RunProcessError::new(
-                e.error_cloud.unwrap().error_message.unwrap(),
-            ))
-        }
-    }
-}
-
 impl ExFlowRuntimeArgs {
     pub async fn run(&self) -> std::io::Result<()> {
         match &self.command {
@@ -231,26 +89,20 @@ impl ExFlowRuntimeArgs {
                      pipeline_name,
                  }) => {
                 info!("Run with CLI arguments");
-                let run_process_result = run_process(
+
+                let param  = ExFlowRuntimeActivityADFParam::new(
                     subscription_id,
                     resource_group_name,
                     factory_name,
                     pipeline_name,
                     3u64,
-                    Some(Box::new(move |response| {
-                        info!("{:#?}", response);
-                    })),
-                )
-                    .await;
-                match run_process_result {
-                    Ok(r) => {
-                        info!("Waiting for process [{}] to finish", r.run_id);
-                        r.join_handle.join().expect("Failed to join");
-                    }
-                    Err(e) => {
-                        error!("Failed to run process {:?}", e);
-                    }
-                }
+                );
+                let runtime_executor =
+                    ExFlowRuntimeADFActivityExecutor::new();
+
+                let  runtime_res=
+                    runtime_executor.run(&param).await;
+
                 Ok(())
             }
             Some(Commands::Runtime {

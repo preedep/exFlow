@@ -6,10 +6,11 @@ use tracing_subscriber::Registry;
 
 use crate::mod_ex_flow_utils::entities::{ExFlowError, SystemInformation};
 
-
-
 type ExFlowResult<T> = Result<T,ExFlowError>;
 
+pub fn string_to_static_str(s: &String) -> &'static str {
+    Box::leak(s.clone().into_boxed_str())
+}
 
 pub fn set_global_apm_tracing(apm_connection_string: &str, service_name: &str) {
     if apm_connection_string.len() > 0 {
@@ -27,7 +28,6 @@ pub fn set_global_apm_tracing(apm_connection_string: &str, service_name: &str) {
         tracing::subscriber::set_global_default(subscriber).expect("setting global default failed");
     }
 }
-
 
 pub fn get_system_info() -> ExFlowResult<SystemInformation> {
     debug!("get_system_info");
