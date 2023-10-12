@@ -3,7 +3,7 @@ use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
 use async_trait::async_trait;
-use log::{error, info};
+use log::{debug, error, info};
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
 use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
 use crate::mod_ex_flow_utils::entities::ExFlowError;
@@ -23,13 +23,23 @@ impl ExFlowRuntimeADFActivityExecutor {
 impl ExFlowRuntimeActivityExecutor<ExFlowRuntimeActivityADFParam> for ExFlowRuntimeADFActivityExecutor {
     type ItemResult = (ExFlowRuntimeActivityResult,JoinHandle<()>);
     async fn run(&self, activity: &ExFlowRuntimeActivityADFParam) -> ExFlowRuntimeActivityExecutorResult<Self::ItemResult> {
-        let result = run_process(&activity.subscription_id,
+        let result = adf_run_process(&activity.subscription_id,
         &activity.resource_group_name,
         &activity.factory_name,
         &activity.pipeline_name,
         activity.callback_waiting_sec_time,
                     Some(Box::new(move |response| {
                         info!("{:#?}", response);
+                        /*
+                        match &activity.callback_url {
+                            None => {}
+                            Some(url) => {
+                                if url.len() > 0 {
+                                    debug!("try to post callback url {}", url);
+                                }
+                            }
+                        }
+                        */
                     }))).await;
 
         result.map(|r|{
@@ -66,7 +76,7 @@ struct RunProcessJoinHandle {
 
 type RunProcessResult<T> = Result<T, RunProcessError>;
 
-async fn run_process(
+async fn adf_run_process(
     subscription_id: &String,
     resource_group_name: &String,
     factory_name: &String,

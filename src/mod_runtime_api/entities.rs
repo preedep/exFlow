@@ -4,18 +4,18 @@ use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Display, Error, Serialize, Deserialize)]
-pub struct ExFlowWebRuntimeError {
+pub struct ExFlowRuntimeWebError {
     #[serde(rename = "error_message")]
     pub error_message: String,
 }
 
-impl ExFlowWebRuntimeError {
+impl ExFlowRuntimeWebError {
     pub fn new(error_message: String) -> Self {
-        ExFlowWebRuntimeError { error_message }
+        ExFlowRuntimeWebError { error_message }
     }
 }
 
-impl error::ResponseError for ExFlowWebRuntimeError {
+impl error::ResponseError for ExFlowRuntimeWebError {
     fn error_response(&self) -> HttpResponse {
         HttpResponse::InternalServerError().json(&self)
     }

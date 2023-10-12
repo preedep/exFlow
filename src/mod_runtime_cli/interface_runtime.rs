@@ -17,7 +17,7 @@ pub struct ExFlowRuntimeActivityADFParam {
     pub factory_name: String,
     pub pipeline_name: String,
     pub callback_waiting_sec_time: u64,
-    pub callback_fn: Option<String>,
+    pub callback_url: Option<String>,
 }
 impl ExFlowRuntimeActivityADFParam {
      pub fn new(subscription_id: &str,
@@ -25,6 +25,7 @@ impl ExFlowRuntimeActivityADFParam {
                factory_name: &str,
                pipeline_name: &str,
                callback_waiting_sec_time: u64,
+                callback_url: Option<String>,
      ) -> Self {
         ExFlowRuntimeActivityADFParam{
             subscription_id: subscription_id.to_string(),
@@ -32,16 +33,20 @@ impl ExFlowRuntimeActivityADFParam {
             factory_name: factory_name.to_string(),
             pipeline_name: pipeline_name.to_string(),
             callback_waiting_sec_time,
-            callback_fn: None,
+
+            callback_url,
         }
     }
 }
 
+/*
 pub trait RunProcessCallback {
     fn on_completed(&self);
     fn on_failed(&self);
     fn on_running(&self);
 }
+*/
+
 #[async_trait]
 pub trait ExFlowRuntimeActivityExecutor<T> {
     type ItemResult;
