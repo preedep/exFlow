@@ -48,3 +48,27 @@ impl Responder for PipelineRunResponse {
         HttpResponse::Ok().json(&self)
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ActivityType {
+    RunTimeAdf,
+    RuntimeApi,
+    RuntimeCli,
+}
+impl ToString for ActivityType {
+    fn to_string(&self) -> String {
+        match self {
+            ActivityType::RunTimeAdf => {"RunTimeAdf".to_string()}
+            ActivityType::RuntimeApi => {"RuntimeApi".to_string()}
+            ActivityType::RuntimeCli => {"RuntimeCli".to_string()}
+        }
+    }
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExFlowRuntimeActivityWebRequest {
+    #[serde(rename = "activity_type")]
+    pub activity_type: ActivityType,
+
+    #[serde(rename = "runtime_activity_adf_request")]
+    pub adf_request : Option<PipelineRunRequest>
+}
