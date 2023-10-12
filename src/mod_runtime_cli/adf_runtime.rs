@@ -12,10 +12,8 @@ use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus};
 use crate::mod_ex_flow_utils::entities::ExFlowError;
 use crate::mod_ex_flow_utils::utils_ex_flow::string_to_static_str;
 use crate::mod_runtime_cli::interface_runtime::{
-     ExFlowRuntimeActivityExecutor,
-    ExFlowRuntimeActivityExecutorResult, ExFlowRuntimeActivityResult,
+    ExFlowRuntimeActivityExecutor, ExFlowRuntimeActivityExecutorResult, ExFlowRuntimeActivityResult,
 };
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExFlowRuntimeActivityADFParam {
@@ -53,7 +51,6 @@ impl ExFlowRuntimeADFActivityExecutor {
         ExFlowRuntimeADFActivityExecutor {}
     }
 }
-
 
 #[async_trait]
 impl ExFlowRuntimeActivityExecutor<ExFlowRuntimeActivityADFParam>
