@@ -3,7 +3,7 @@ use log::debug;
 use tracing_attributes::instrument;
 
 use crate::mod_db::db::Db;
-use crate::mod_service_api::entities::ExFlowRuntimeRegisterRequest;
+use crate::mod_service::entities::ExFlowRuntimeRegisterRequest;
 
 #[instrument]
 pub async fn post_register_runtime(

@@ -3,11 +3,12 @@ use actix_web::middleware::Logger;
 use actix_web_opentelemetry::RequestTracing;
 use clap::Parser;
 use log::info;
-
 use crate::mod_db::db::Db;
-use crate::mod_ex_flow_utils::uri_endpoints::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
-use crate::mod_ex_flow_utils::utils::set_global_apm_tracing;
-use crate::mod_service_api::service_api::post_register_runtime;
+
+use crate::mod_utils::uri_endpoints::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
+use crate::mod_utils::utils::set_global_apm_tracing;
+use crate::mod_service::service_api::post_register_runtime;
+
 
 const SERVICE_NAME: &'static str = "ExFlow-Service";
 

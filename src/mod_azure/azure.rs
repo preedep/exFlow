@@ -1,7 +1,3 @@
-use std::fmt::Display;
-use std::future::Future;
-
-use actix_web::body::MessageBody;
 use azure_core::auth::{TokenCredential, TokenResponse};
 use azure_identity::DefaultAzureCredential;
 use chrono::Utc;

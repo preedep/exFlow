@@ -1,13 +1,13 @@
 use clap::Parser;
 
-use crate::mod_runtime_cli::runtime_cli::ExFlowRuntimeArgs;
+use crate::mod_runtime::runtime_cli::ExFlowRuntimeArgs;
 
 mod mod_azure;
-mod mod_ex_flow_utils;
-mod mod_runtime_api;
-mod mod_runtime_cli;
+mod mod_utils;
+mod mod_service;
+mod mod_runtime;
 
-mod mod_service_api;
+
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

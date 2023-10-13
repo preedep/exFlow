@@ -1,18 +1,14 @@
 use actix_web::{HttpResponse, Responder, web};
 use tracing_attributes::instrument;
 
-use crate::mod_ex_flow_utils::errors::{ExFlowError, GENERAL_FUNCTION_NOT_SUPPORTED, GENERAL_PARAM_NOT_COMPLETE};
-use crate::mod_runtime_api::entities::{
-    ActivityType, ExFlowRuntimeActivityWebRequest,
-    PipelineRunResponse,
-};
-use crate::mod_runtime_cli::adf_runtime::{
+use crate::mod_utils::errors::{ExFlowError, GENERAL_FUNCTION_NOT_SUPPORTED, GENERAL_PARAM_NOT_COMPLETE};
+use crate::mod_runtime::adf_runtime::{
     ExFlowRuntimeActivityADFParam, ExFlowRuntimeADFActivityExecutor,
 };
-use crate::mod_runtime_cli::interface_runtime::ExFlowRuntimeActivityExecutor;
+use crate::mod_runtime::entities::{ActivityType, ExFlowRuntimeActivityWebRequest, PipelineRunResponse};
+use crate::mod_runtime::interface_runtime::ExFlowRuntimeActivityExecutor;
 
 type ExFlowWebRuntimeResult<T> = Result<T, ExFlowError>;
-
 #[instrument]
 pub async fn post_run_pipeline(
     request: web::Json<ExFlowRuntimeActivityWebRequest>,

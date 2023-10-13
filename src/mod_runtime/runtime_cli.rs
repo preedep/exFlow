@@ -5,18 +5,19 @@ use clap::{command, Parser, Subcommand};
 use http::StatusCode;
 use log::{debug, error, info};
 
-use crate::mod_ex_flow_utils::errors::ExFlowError;
-use crate::mod_ex_flow_utils::uri_endpoints::{
+use crate::mod_utils::errors::ExFlowError;
+use crate::mod_utils::uri_endpoints::{
     EX_FLOW_RUNTIME_API_GET_PIPELINE, EX_FLOW_RUNTIME_API_RUN_PIPELINE, EX_FLOW_RUNTIME_API_SCOPE,
     EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE,
 };
-use crate::mod_ex_flow_utils::utils::{get_system_info, set_global_apm_tracing};
-use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
-use crate::mod_runtime_cli::adf_runtime::{
+use crate::mod_utils::utils::{get_system_info, set_global_apm_tracing};
+use crate::mod_runtime::runtime_api::{get_status_pipeline, post_run_pipeline};
+use crate::mod_runtime::adf_runtime::{
     ExFlowRuntimeActivityADFParam, ExFlowRuntimeADFActivityExecutor,
 };
-use crate::mod_runtime_cli::interface_runtime::ExFlowRuntimeActivityExecutor;
-use crate::mod_service_api::entities::ExFlowRuntimeRegisterRequest;
+use crate::mod_runtime::interface_runtime::ExFlowRuntimeActivityExecutor;
+use crate::mod_service::entities::ExFlowRuntimeRegisterRequest;
+
 
 const APM_SERVICE_NAME: &'static str = "ExFlow-Runtime";
 const RUNTIME_X_VERSION_HEADER: &'static str = "ExFlow-Runtime-X-Version";
