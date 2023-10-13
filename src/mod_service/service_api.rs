@@ -7,10 +7,12 @@ use crate::mod_utils::web_data::ExFlowRuntimeRegisterRequest;
 
 #[instrument]
 pub async fn post_register_runtime(
-    _data: web::Data<Db>,
+    data: web::Data<Db>,
     request: web::Json<ExFlowRuntimeRegisterRequest>,
 ) -> impl Responder {
     debug!("post_register_runtime : {:#?}", request);
+    //data.get_connection().await;
+   //&data.get_connection().await;
 
     HttpResponse::Ok().finish()
 }
