@@ -3,9 +3,10 @@ use tracing_attributes::instrument;
 
 use crate::mod_ex_flow_utils::errors::{GENERAL_FUNCTION_NOT_SUPPORTED, GENERAL_PARAM_NOT_COMPLETE};
 use crate::mod_runtime_api::entities::{
-    ActivityType, ExFlowRuntimeActivityWebRequest, ExFlowRuntimeWebError,
+    ActivityType, ExFlowRuntimeActivityWebRequest,
     PipelineRunResponse,
 };
+use crate::mod_runtime_api::errors::ExFlowRuntimeWebError;
 use crate::mod_runtime_cli::adf_runtime::{
     ExFlowRuntimeActivityADFParam, ExFlowRuntimeADFActivityExecutor,
 };
