@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
 use time::OffsetDateTime;
 use uuid::Uuid;
 
@@ -8,13 +9,19 @@ use crate::mod_utils::web_data::ExFlowRuntimeRegisterRequest;
 /// TblExFlowRuntimeClients is struct representing tbl_exflow_runtime_clients
 /// Collect data when ExFlowRuntime is initialized and Register to ExFlow Service
 ///
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct TblExFlowRuntimeClients {
+    #[serde(rename="client_id")]
     pub client_id: String,
+    #[serde(rename="host_name")]
     pub host_name: String,
+    #[serde(rename="host_ip")]
     pub host_ip: String,
+    #[serde(rename="register_id")]
     pub register_id: String,
+    #[serde(rename="created_dt")]
     pub created_dt: time::OffsetDateTime,
+    #[serde(rename="updated_dt")]
     pub updated_dt: time::OffsetDateTime,
 }
 

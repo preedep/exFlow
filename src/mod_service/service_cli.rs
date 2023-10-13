@@ -1,10 +1,10 @@
+use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
-use actix_web::{middleware, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use clap::Parser;
-use log::info;
+use log::{debug, info};
+use sqlx::sqlite::SqlitePoolOptions;
 
-use crate::mod_db::db::Db;
 use crate::mod_service::service_api::post_register_runtime;
 use crate::mod_utils::uri_endpoints::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
 use crate::mod_utils::utils::set_global_apm_tracing;
@@ -40,29 +40,37 @@ impl ExFlowServiceArgs {
         let apm_connection_string = self.apm_connection_string.clone();
         set_global_apm_tracing(apm_connection_string.as_str(), SERVICE_NAME);
 
-        let db = Db::new(
-            "nickdatabaseserver001.database.windows.net".to_string(),
-            "nickdatabaseserver001".to_string(),
-            1433,
-        );
+        let pool = SqlitePoolOptions::new().max_connections(10)
+            .connect("file:exflow.db").await;
 
-        HttpServer::new(move || {
-            App::new()
-                .app_data(web::Data::new(db.clone()))
-                .wrap(middleware::DefaultHeaders::new().add(("ExFlow-Runtime-X-Version", "0.1")))
-                .wrap(Logger::default())
-                .wrap(Logger::new(
-                    r#"%a %t "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#,
-                ))
-                .wrap(RequestTracing::new())
-                .service(web::scope(EX_FLOW_SERVICE_API_SCOPE).route(
-                    EX_FLOW_SERVICE_API_IR_REGISTER,
-                    web::post().to(post_register_runtime),
-                ))
-        })
-        .workers(10)
-        .bind(("0.0.0.0", self.port_number))?
-        .run()
-        .await
+        match pool {
+            Ok(pool) => {
+
+                debug!("DB connection successfully");
+                HttpServer::new(move || {
+                    App::new()
+                        .app_data(web::Data::new(pool.clone()))
+                        .wrap(middleware::DefaultHeaders::new().add(("ExFlow-Runtime-X-Version", "0.1")))
+                        .wrap(Logger::default())
+                        .wrap(Logger::new(
+                            r#"%a %t "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#,
+                        ))
+                        .wrap(RequestTracing::new())
+                        .service(web::scope(EX_FLOW_SERVICE_API_SCOPE).route(
+                            EX_FLOW_SERVICE_API_IR_REGISTER,
+                            web::post().to(post_register_runtime),
+                        ))
+                })
+                    .workers(10)
+                    .bind(("0.0.0.0", self.port_number))?
+                    .run()
+                    .await
+            }
+            Err(e) => {
+                panic!("DB connection failed : {:?}", e);
+            }
+        }
+
+
     }
 }
