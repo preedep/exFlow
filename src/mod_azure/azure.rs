@@ -60,7 +60,7 @@ pub async fn adf_pipelines_get(
         resource_group_name.to_string(),
         factory_name.to_string(),
     )
-        .with_run_id(run_id.to_string());
+    .with_run_id(run_id.to_string());
     let response = reqwest::Client::new()
         .get(get_url.to_get_status_url())
         .header(
@@ -108,7 +108,7 @@ pub async fn adf_pipelines_run(
         resource_group_name.to_string(),
         factory_name.to_string(),
     )
-        .with_pipeline_name(pipeline_name.to_string());
+    .with_pipeline_name(pipeline_name.to_string());
     let response = reqwest::Client::new()
         .post(create_run.to_run_create_url())
         .header(

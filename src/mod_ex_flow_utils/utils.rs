@@ -1,15 +1,33 @@
 use local_ip_address::local_ip;
 use log::debug;
+use serde::{Deserialize, Serialize};
 use sysinfo::{NetworkExt, System, SystemExt};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::Registry;
 
-use crate::mod_ex_flow_utils::entities::{ExFlowError, SystemInformation};
+use crate::mod_ex_flow_utils::errors::ExFlowError;
+
+type ExFlowResult<T> = Result<T, ExFlowError>;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemInformation {
+    pub host_name: String,
+    pub host_ip: String,
+}
+
+impl SystemInformation {
+    pub fn new(host_name: &str, host_ip: &str) -> Self {
+        SystemInformation {
+            host_name: host_name.to_string(),
+            host_ip: host_ip.to_string(),
+        }
+    }
+}
 
 
-
-type ExFlowResult<T> = Result<T,ExFlowError>;
-
+pub fn string_to_static_str(s: &String) -> &'static str {
+    Box::leak(s.clone().into_boxed_str())
+}
 
 pub fn set_global_apm_tracing(apm_connection_string: &str, service_name: &str) {
     if apm_connection_string.len() > 0 {
@@ -17,17 +35,16 @@ pub fn set_global_apm_tracing(apm_connection_string: &str, service_name: &str) {
         let exporter = opentelemetry_application_insights::new_pipeline_from_connection_string(
             apm_connection_string,
         )
-            .unwrap()
-            .with_client(reqwest::Client::new())
-            .with_service_name(service_name.to_string())
-            .install_batch(opentelemetry::runtime::Tokio);
+        .unwrap()
+        .with_client(reqwest::Client::new())
+        .with_service_name(service_name.to_string())
+        .install_batch(opentelemetry::runtime::Tokio);
 
         let telemetry = tracing_opentelemetry::layer().with_tracer(exporter);
         let subscriber = Registry::default().with(telemetry);
         tracing::subscriber::set_global_default(subscriber).expect("setting global default failed");
     }
 }
-
 
 pub fn get_system_info() -> ExFlowResult<SystemInformation> {
     debug!("get_system_info");
@@ -78,10 +95,10 @@ pub fn get_system_info() -> ExFlowResult<SystemInformation> {
     debug!("NB CPUs: {}", sys.cpus().len());
 
     let my_local_ip = local_ip();
-    my_local_ip.map_err(|e|{
-        ExFlowError::new("Error")
-    }).map(|r|{
-        SystemInformation::new(&sys.host_name().unwrap_or("".to_string()).as_str(),
-        r.to_string().as_str())
+    my_local_ip.map_err(|e| ExFlowError::new("Error")).map(|r| {
+        SystemInformation::new(
+            &sys.host_name().unwrap_or("".to_string()).as_str(),
+            r.to_string().as_str(),
+        )
     })
 }

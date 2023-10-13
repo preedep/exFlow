@@ -4,8 +4,8 @@ use log::{debug, error, info};
 use crate::mod_db::db_exflow::get_employees;
 use crate::mod_runtime_api::entities::PipelineRunRequest;
 
-mod mod_ex_flow_utils;
 mod mod_azure;
+mod mod_ex_flow_utils;
 mod mod_runtime_api;
 mod mod_runtime_cli;
 

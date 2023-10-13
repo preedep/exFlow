@@ -1,25 +1,8 @@
-use actix_web::{error, HttpRequest, HttpResponse, Responder};
+use std::fmt::Display;
+
+use actix_web::{HttpRequest, HttpResponse, Responder};
 use actix_web::body::BoxBody;
-use derive_more::{Display, Error};
 use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Display, Error, Serialize, Deserialize)]
-pub struct ExFlowWebRuntimeError {
-    #[serde(rename = "error_message")]
-    pub error_message: String,
-}
-
-impl ExFlowWebRuntimeError {
-    pub fn new(error_message: String) -> Self {
-        ExFlowWebRuntimeError { error_message }
-    }
-}
-
-impl error::ResponseError for ExFlowWebRuntimeError {
-    fn error_response(&self) -> HttpResponse {
-        HttpResponse::InternalServerError().json(&self)
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PipelineRunRequest {
@@ -47,4 +30,28 @@ impl Responder for PipelineRunResponse {
         // Create response and set content type
         HttpResponse::Ok().json(&self)
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum ActivityType {
+    RunTimeAdf,
+    RuntimeApi,
+    RuntimeCli,
+}
+impl ToString for ActivityType {
+    fn to_string(&self) -> String {
+        match self {
+            ActivityType::RunTimeAdf => "RunTimeAdf".to_string(),
+            ActivityType::RuntimeApi => "RuntimeApi".to_string(),
+            ActivityType::RuntimeCli => "RuntimeCli".to_string(),
+        }
+    }
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExFlowRuntimeActivityWebRequest {
+    #[serde(rename = "activity_type")]
+    pub activity_type: ActivityType,
+
+    #[serde(rename = "runtime_activity_adf_request")]
+    pub adf_request: Option<PipelineRunRequest>,
 }

@@ -1,38 +1,52 @@
 use actix_web::{HttpResponse, Responder, web};
-use log::info;
 use tracing_attributes::instrument;
 
+use crate::mod_ex_flow_utils::errors::{ExFlowError, GENERAL_FUNCTION_NOT_SUPPORTED, GENERAL_PARAM_NOT_COMPLETE};
 use crate::mod_runtime_api::entities::{
-    ExFlowWebRuntimeError, PipelineRunRequest, PipelineRunResponse,
+    ActivityType, ExFlowRuntimeActivityWebRequest,
+    PipelineRunResponse,
 };
-use crate::mod_runtime_cli::runtime_cli::run_process;
+use crate::mod_runtime_cli::adf_runtime::{
+    ExFlowRuntimeActivityADFParam, ExFlowRuntimeADFActivityExecutor,
+};
+use crate::mod_runtime_cli::interface_runtime::ExFlowRuntimeActivityExecutor;
 
-type ExFlowWebRuntimeResult<T> = Result<T, ExFlowWebRuntimeError>;
+type ExFlowWebRuntimeResult<T> = Result<T, ExFlowError>;
 
 #[instrument]
 pub async fn post_run_pipeline(
-    request: web::Json<PipelineRunRequest>,
+    request: web::Json<ExFlowRuntimeActivityWebRequest>,
 ) -> ExFlowWebRuntimeResult<PipelineRunResponse> {
     //
     // Call run_process is same CLI
     //
-    let result = run_process(
-        &request.subscription_id,
-        &request.resource_group_name,
-        &request.factory_name,
-        &request.pipeline_name,
-        3u64,
-        Some(Box::new(|resp| {
-            info!("{:#?}", resp);
-        })),
-    )
-        .await;
-
-    result
-        .map(|result| PipelineRunResponse {
-            run_id: result.run_id,
-        })
-        .map_err(|e| ExFlowWebRuntimeError::new(e.to_string()))
+    match &request.activity_type {
+        ActivityType::RunTimeAdf => match &request.adf_request {
+            None => Err(ExFlowError::new(GENERAL_PARAM_NOT_COMPLETE)),
+            Some(request) => {
+                let param = ExFlowRuntimeActivityADFParam::new(
+                    request.subscription_id.as_str(),
+                    request.resource_group_name.as_str(),
+                    request.factory_name.as_str(),
+                    request.pipeline_name.as_str(),
+                    3u64,
+                    request.clone().callback_url,
+                );
+                let runtime_executor = ExFlowRuntimeADFActivityExecutor::new();
+                let runtime_res = runtime_executor.run(&param).await;
+                runtime_res
+                    .map(|result| PipelineRunResponse {
+                        run_id: result.0.run_id,
+                    })
+            }
+        },
+        ActivityType::RuntimeApi => Err(ExFlowError::new(
+            GENERAL_FUNCTION_NOT_SUPPORTED,
+        )),
+        ActivityType::RuntimeCli => Err(ExFlowError::new(
+            GENERAL_FUNCTION_NOT_SUPPORTED,
+        )),
+    }
 }
 
 #[instrument]
