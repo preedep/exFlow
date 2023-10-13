@@ -1,12 +1,30 @@
 use local_ip_address::local_ip;
 use log::debug;
+use serde::{Deserialize, Serialize};
 use sysinfo::{NetworkExt, System, SystemExt};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::Registry;
 
-use crate::mod_ex_flow_utils::entities::{ExFlowError, SystemInformation};
+
+use crate::mod_ex_flow_utils::errors::ExFlowError;
 
 type ExFlowResult<T> = Result<T, ExFlowError>;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemInformation {
+    pub host_name: String,
+    pub host_ip: String,
+}
+
+impl SystemInformation {
+    pub fn new(host_name: &str, host_ip: &str) -> Self {
+        SystemInformation {
+            host_name: host_name.to_string(),
+            host_ip: host_ip.to_string(),
+        }
+    }
+}
+
 
 pub fn string_to_static_str(s: &String) -> &'static str {
     Box::leak(s.clone().into_boxed_str())

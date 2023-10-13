@@ -7,11 +7,11 @@ use clap::{command, Parser, Subcommand};
 use http::StatusCode;
 use log::{debug, error, info};
 
-use crate::mod_ex_flow_utils::uri::{
+use crate::mod_ex_flow_utils::uri_endpoints::{
     EX_FLOW_RUNTIME_API_GET_PIPELINE, EX_FLOW_RUNTIME_API_RUN_PIPELINE, EX_FLOW_RUNTIME_API_SCOPE,
     EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE,
 };
-use crate::mod_ex_flow_utils::utils_ex_flow::{get_system_info, set_global_apm_tracing};
+use crate::mod_ex_flow_utils::utils::{get_system_info, set_global_apm_tracing};
 use crate::mod_runtime_api::runtime_api::{get_status_pipeline, post_run_pipeline};
 use crate::mod_runtime_cli::adf_runtime::{
     ExFlowRuntimeActivityADFParam, ExFlowRuntimeADFActivityExecutor,
@@ -138,46 +138,12 @@ impl ExFlowRuntimeArgs {
             }) => {
                 info!("Run with Web Server mode");
                 info!("ExFlow Runtime starting....");
-
+                // Setup global apm (application performance monitoring)
                 set_global_apm_tracing(apm_connection_string.as_str(), APM_SERVICE_NAME);
-                //info!("Registering.. to exFlow service [{}]",ex_flow_service_endpoint);
-                let sys_info = get_system_info();
-                let end_point = format!(
-                    "http://{}{}{}",
-                    ex_flow_service_endpoint,
-                    EX_FLOW_SERVICE_API_SCOPE,
-                    EX_FLOW_SERVICE_API_IR_REGISTER
-                );
-                debug!("Registering... to exFlow service [{}]", end_point);
-
-                match sys_info {
-                    Ok(s) => {
-                        let request = ExFlowRuntimeRegisterRequest::new(client_id.as_str(), &s);
-                        let register_res = reqwest::Client::new()
-                            .post(end_point)
-                            .json(&request)
-                            .send()
-                            .await;
-
-                        match register_res {
-                            Ok(r) => {
-                                let is_register_complete = r.status() == StatusCode::OK;
-                                if is_register_complete {
-                                    info!("Registering... to exFlow service [{:#?}]", r);
-                                } else {
-                                    panic!("Cannot register ExFlowRuntime : {:#?}", r);
-                                }
-                            }
-                            Err(e) => {
-                                panic!("Cannot register ExFlowRuntime {:?}", e);
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        panic!("Get system info failed : {}", e);
-                    }
-                }
+                // Register this runtime to ExFlow Service
+                Self::register_runtime_to_service(ex_flow_service_endpoint, client_id).await;
                 info!("ExFlow Runtime Started");
+
                 HttpServer::new(|| {
                     App::new()
                         .wrap(
@@ -205,6 +171,45 @@ impl ExFlowRuntimeArgs {
                 .bind(("0.0.0.0", *port_number))?
                 .run()
                 .await
+            }
+        }
+    }
+
+    async fn register_runtime_to_service(ex_flow_service_endpoint: &String, client_id: &String) {
+        let sys_info = get_system_info();
+        let end_point = format!(
+            "http://{}{}{}",
+            ex_flow_service_endpoint,
+            EX_FLOW_SERVICE_API_SCOPE,
+            EX_FLOW_SERVICE_API_IR_REGISTER
+        );
+        debug!("Registering... to exFlow service [{}]", end_point);
+
+        match sys_info {
+            Ok(s) => {
+                let request = ExFlowRuntimeRegisterRequest::new(client_id.as_str(), &s);
+                let register_res = reqwest::Client::new()
+                    .post(end_point)
+                    .json(&request)
+                    .send()
+                    .await;
+
+                match register_res {
+                    Ok(r) => {
+                        let is_register_complete = r.status() == StatusCode::OK;
+                        if is_register_complete {
+                            info!("Registering... to exFlow service [{:#?}]", r);
+                        } else {
+                            panic!("Cannot register ExFlowRuntime : {:#?}", r);
+                        }
+                    }
+                    Err(e) => {
+                        panic!("Cannot register ExFlowRuntime {:?}", e);
+                    }
+                }
+            }
+            Err(e) => {
+                panic!("Get system info failed : {}", e);
             }
         }
     }
