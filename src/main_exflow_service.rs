@@ -13,6 +13,7 @@ mod mod_runtime_cli;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
+
     let args = ExFlowServiceArgs::parse();
     args.run().await
 }

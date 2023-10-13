@@ -2,8 +2,10 @@ use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
 use actix_web_opentelemetry::RequestTracing;
 use clap::Parser;
-use log::info;
+use log::{debug, info};
 
+use crate::mod_azure::azure::get_azure_access_token_from;
+use crate::mod_azure::entities::{AZURE_SPN_DB_URL, AzureAccessTokenResult};
 use crate::mod_ex_flow_utils::uri_endpoints::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
 use crate::mod_ex_flow_utils::utils::set_global_apm_tracing;
 use crate::mod_service_api::service_api::post_register_runtime;
@@ -39,22 +41,33 @@ impl ExFlowServiceArgs {
         let apm_connection_string = self.apm_connection_string.clone();
         set_global_apm_tracing(apm_connection_string.as_str(), SERVICE_NAME);
 
-        HttpServer::new(|| {
-            App::new()
-                .wrap(middleware::DefaultHeaders::new().add(("ExFlow-Runtime-X-Version", "0.1")))
-                .wrap(Logger::default())
-                .wrap(Logger::new(
-                    r#"%a %t "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#,
-                ))
-                .wrap(RequestTracing::new())
-                .service(web::scope(EX_FLOW_SERVICE_API_SCOPE).route(
-                    EX_FLOW_SERVICE_API_IR_REGISTER,
-                    web::post().to(post_register_runtime),
-                ))
-        })
-        .workers(10)
-        .bind(("0.0.0.0", self.port_number))?
-        .run()
-        .await
+        let res_token = get_azure_access_token_from(None,
+                                                    Some(AZURE_SPN_DB_URL.to_string())).await;
+        match res_token {
+            Ok(token) => {
+                debug!("Access token retrieved {:#?}", token);
+
+                HttpServer::new(|| {
+                    App::new()
+                        .wrap(middleware::DefaultHeaders::new().add(("ExFlow-Runtime-X-Version", "0.1")))
+                        .wrap(Logger::default())
+                        .wrap(Logger::new(
+                            r#"%a %t "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#,
+                        ))
+                        .wrap(RequestTracing::new())
+                        .service(web::scope(EX_FLOW_SERVICE_API_SCOPE).route(
+                            EX_FLOW_SERVICE_API_IR_REGISTER,
+                            web::post().to(post_register_runtime),
+                        ))
+                })
+                    .workers(10)
+                    .bind(("0.0.0.0", self.port_number))?
+                    .run()
+                    .await
+            }
+            Err(e) => {
+                panic!("Error getting access token from azure service : {:#?}", e);
+            }
+        }
     }
 }

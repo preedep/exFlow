@@ -1,3 +1,4 @@
+use azure_core::auth::TokenResponse;
 use log::{debug, error};
 use tiberius::{AuthMethod, Client, Config, Query};
 use tokio::net::TcpStream;
@@ -5,7 +6,12 @@ use tokio_util::compat::TokioAsyncWriteCompatExt;
 
 use crate::mod_azure::azure::get_azure_access_token_from;
 use crate::mod_azure::entities::AZURE_SPN_DB_URL;
+use crate::mod_db::entities::TblExFlowRuntimeClients;
 
+pub async fn upsert_ex_flow_runtime_client(access_token: &TokenResponse, 
+                                           runtime_client: &TblExFlowRuntimeClients) {
+    
+}
 pub async fn get_employees() {
     let res_token = get_azure_access_token_from(None, Some(AZURE_SPN_DB_URL.to_string())).await;
     match res_token {
