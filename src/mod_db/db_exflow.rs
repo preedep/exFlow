@@ -1,11 +1,7 @@
-
 use crate::mod_db::db::Db;
 use crate::mod_db::entities::TblExFlowRuntimeClients;
 
-pub async fn upsert_ex_flow_runtime_client(_db : &Db,
-                                           _runtime_client: &TblExFlowRuntimeClients) {
-
-}
+pub async fn upsert_ex_flow_runtime_client(_db: &Db, _runtime_client: &TblExFlowRuntimeClients) {}
 /*
 pub async fn get_employees() {
     let res_token = get_azure_access_token_from(None, Some(AZURE_SPN_DB_URL.to_string())).await;

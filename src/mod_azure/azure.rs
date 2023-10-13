@@ -5,7 +5,7 @@ use log::{debug, error};
 
 use crate::mod_azure::entities::{
     ADFCreateRunResponse, ADFPipelineParams, ADFPipelineRunResponse, ADFResult,
-    AZURE_SPN_URL, AzureAccessTokenResult, AzureCloudError,
+    AzureAccessTokenResult, AzureCloudError, AZURE_SPN_URL,
 };
 
 pub async fn get_azure_access_token_from(

@@ -42,7 +42,6 @@ tokio-util = "0.7"
 async-trait = "0.1"
 time =  { version = "0.3", features = ["macros"] }
 
-
 [dependencies.uuid]
 version = "1.4"
 features = [
@@ -53,16 +52,18 @@ features = [
 
 
 [features]
-exflow_runtime_required = ["azure_core",
-                            "azure_identity",
-                            "serde",
-                            "serde_qs",
-                            "serde_urlencoded",
-                            "sysinfo",
-                            "local-ip-address"
+exflow_runtime_required = [
+    "azure_core",
+    "azure_identity",
+    "serde",
+    "serde_qs",
+    "serde_urlencoded",
+    "sysinfo",
+    "local-ip-address"
 ]
 
-exflow_scheduler_required = ["clokwerk",
+exflow_scheduler_required = [
+    "clokwerk",
     "azure_core",
     "azure_identity",
     "serde",

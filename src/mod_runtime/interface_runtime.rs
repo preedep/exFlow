@@ -7,6 +7,7 @@ use crate::mod_utils::errors::ExFlowError;
 pub struct ExFlowRuntimeActivityResult {
     pub run_id: String,
 }
+
 pub type ExFlowRuntimeActivityExecutorResult<T> = Result<T, ExFlowError>;
 
 #[async_trait]

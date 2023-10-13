@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-use crate::mod_service_api::entities::ExFlowRuntimeRegisterRequest;
+use crate::mod_utils::web_data::ExFlowRuntimeRegisterRequest;
 
 ///
 /// TblExFlowRuntimeClients is struct representing tbl_exflow_runtime_clients
@@ -13,10 +13,11 @@ pub struct TblExFlowRuntimeClients {
     pub client_id: String,
     pub host_name: String,
     pub host_ip: String,
-    pub register_id : String,
-    pub created_dt : time::OffsetDateTime,
-    pub updated_dt : time::OffsetDateTime,
+    pub register_id: String,
+    pub created_dt: time::OffsetDateTime,
+    pub updated_dt: time::OffsetDateTime,
 }
+
 impl From<ExFlowRuntimeRegisterRequest> for TblExFlowRuntimeClients {
     fn from(value: ExFlowRuntimeRegisterRequest) -> Self {
         let id = Uuid::new_v4();
@@ -30,6 +31,7 @@ impl From<ExFlowRuntimeRegisterRequest> for TblExFlowRuntimeClients {
         }
     }
 }
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TblExFlowApps {}
 

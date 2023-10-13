@@ -1,23 +1,22 @@
-use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
+use actix_web::{middleware, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use clap::{command, Parser, Subcommand};
 use http::StatusCode;
 use log::{debug, error, info};
 
+use crate::mod_runtime::adf_runtime::{
+    ExFlowRuntimeADFActivityExecutor, ExFlowRuntimeActivityADFParam,
+};
+use crate::mod_runtime::interface_runtime::ExFlowRuntimeActivityExecutor;
+use crate::mod_runtime::runtime_api::{get_status_pipeline, post_run_pipeline};
 use crate::mod_utils::errors::ExFlowError;
 use crate::mod_utils::uri_endpoints::{
     EX_FLOW_RUNTIME_API_GET_PIPELINE, EX_FLOW_RUNTIME_API_RUN_PIPELINE, EX_FLOW_RUNTIME_API_SCOPE,
     EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE,
 };
 use crate::mod_utils::utils::{get_system_info, set_global_apm_tracing};
-use crate::mod_runtime::runtime_api::{get_status_pipeline, post_run_pipeline};
-use crate::mod_runtime::adf_runtime::{
-    ExFlowRuntimeActivityADFParam, ExFlowRuntimeADFActivityExecutor,
-};
-use crate::mod_runtime::interface_runtime::ExFlowRuntimeActivityExecutor;
-use crate::mod_service::entities::ExFlowRuntimeRegisterRequest;
-
+use crate::mod_utils::web_data::ExFlowRuntimeRegisterRequest;
 
 const APM_SERVICE_NAME: &'static str = "ExFlow-Runtime";
 const RUNTIME_X_VERSION_HEADER: &'static str = "ExFlow-Runtime-X-Version";
@@ -104,7 +103,13 @@ impl ExFlowRuntimeArgs {
                 pipeline_name,
             }) => {
                 info!("Run with CLI arguments");
-                Self::cli_adf_handler(subscription_id, resource_group_name, factory_name, pipeline_name).await;
+                Self::cli_adf_handler(
+                    subscription_id,
+                    resource_group_name,
+                    factory_name,
+                    pipeline_name,
+                )
+                .await;
                 Ok(())
             }
             Some(Commands::Runtime {
@@ -118,8 +123,8 @@ impl ExFlowRuntimeArgs {
                 // Setup global apm (application performance monitoring)
                 set_global_apm_tracing(apm_connection_string.as_str(), APM_SERVICE_NAME);
                 // Register this runtime to ExFlow Service
-                let _ = Self::register_runtime_to_service(ex_flow_service_endpoint, client_id).await;
-
+                let _ =
+                    Self::register_runtime_to_service(ex_flow_service_endpoint, client_id).await;
 
                 info!("ExFlow Runtime Started");
                 HttpServer::new(|| {
@@ -153,7 +158,12 @@ impl ExFlowRuntimeArgs {
         }
     }
 
-    async fn cli_adf_handler(subscription_id: &String, resource_group_name: &String, factory_name: &String, pipeline_name: &String) {
+    async fn cli_adf_handler(
+        subscription_id: &String,
+        resource_group_name: &String,
+        factory_name: &String,
+        pipeline_name: &String,
+    ) {
         let param = ExFlowRuntimeActivityADFParam::new(
             subscription_id,
             resource_group_name,
@@ -167,9 +177,9 @@ impl ExFlowRuntimeArgs {
         match runtime_res {
             Ok(r) => {
                 info!(
-                            "Run with CLI arguments successfully > run_id [{:#?}]",
-                            r.0.run_id
-                        );
+                    "Run with CLI arguments successfully > run_id [{:#?}]",
+                    r.0.run_id
+                );
                 r.1.join().expect("Runtime activity waiting failed");
             }
             Err(e) => {
@@ -178,14 +188,14 @@ impl ExFlowRuntimeArgs {
         }
     }
 
-    async fn register_runtime_to_service(ex_flow_service_endpoint: &String, client_id: &String) -> Result<(),ExFlowError>
-    {
+    async fn register_runtime_to_service(
+        ex_flow_service_endpoint: &String,
+        client_id: &String,
+    ) -> Result<(), ExFlowError> {
         let sys_info = get_system_info();
         let end_point = format!(
             "http://{}{}{}",
-            ex_flow_service_endpoint,
-            EX_FLOW_SERVICE_API_SCOPE,
-            EX_FLOW_SERVICE_API_IR_REGISTER
+            ex_flow_service_endpoint, EX_FLOW_SERVICE_API_SCOPE, EX_FLOW_SERVICE_API_IR_REGISTER
         );
         debug!("Registering... to exFlow service [{}]", end_point);
 
@@ -203,7 +213,7 @@ impl ExFlowRuntimeArgs {
                         let is_register_complete = r.status() == StatusCode::OK;
                         if is_register_complete {
                             Ok(())
-                        }else{
+                        } else {
                             Err(ExFlowError::new(""))
                         }
                     }
@@ -212,9 +222,7 @@ impl ExFlowRuntimeArgs {
                     }
                 }
             }
-            Err(e) => {
-                Err(e)
-            }
+            Err(e) => Err(e),
         }
     }
 }

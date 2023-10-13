@@ -1,14 +1,13 @@
-use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
+use actix_web::{middleware, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use clap::Parser;
 use log::info;
-use crate::mod_db::db::Db;
 
+use crate::mod_db::db::Db;
+use crate::mod_service::service_api::post_register_runtime;
 use crate::mod_utils::uri_endpoints::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
 use crate::mod_utils::utils::set_global_apm_tracing;
-use crate::mod_service::service_api::post_register_runtime;
-
 
 const SERVICE_NAME: &'static str = "ExFlow-Service";
 
@@ -41,9 +40,11 @@ impl ExFlowServiceArgs {
         let apm_connection_string = self.apm_connection_string.clone();
         set_global_apm_tracing(apm_connection_string.as_str(), SERVICE_NAME);
 
-        let db = Db::new("nickdatabaseserver001.database.windows.net".to_string(),
-                         "nickdatabaseserver001".to_string(),
-                         1433);
+        let db = Db::new(
+            "nickdatabaseserver001.database.windows.net".to_string(),
+            "nickdatabaseserver001".to_string(),
+            1433,
+        );
 
         HttpServer::new(move || {
             App::new()
@@ -59,9 +60,9 @@ impl ExFlowServiceArgs {
                     web::post().to(post_register_runtime),
                 ))
         })
-            .workers(10)
-            .bind(("0.0.0.0", self.port_number))?
-            .run()
-            .await
+        .workers(10)
+        .bind(("0.0.0.0", self.port_number))?
+        .run()
+        .await
     }
 }
