@@ -1,4 +1,3 @@
-use std::fmt::Display;
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
@@ -9,11 +8,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
 use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus, AzureCloudError};
-use crate::mod_ex_flow_utils::errors::{ExFlowError, RUNTIME_ERROR};
-use crate::mod_ex_flow_utils::utils::string_to_static_str;
-use crate::mod_runtime_cli::interface_runtime::{
+use crate::mod_runtime::interface_runtime::{
     ExFlowRuntimeActivityExecutor, ExFlowRuntimeActivityExecutorResult, ExFlowRuntimeActivityResult,
 };
+use crate::mod_utils::errors::ExFlowError;
+use crate::mod_utils::utils::string_to_static_str;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExFlowRuntimeActivityADFParam {
@@ -24,6 +23,7 @@ pub struct ExFlowRuntimeActivityADFParam {
     pub callback_waiting_sec_time: u64,
     pub callback_url: Option<String>,
 }
+
 impl ExFlowRuntimeActivityADFParam {
     pub fn new(
         subscription_id: &str,
@@ -44,6 +44,7 @@ impl ExFlowRuntimeActivityADFParam {
         }
     }
 }
+
 pub struct ExFlowRuntimeADFActivityExecutor;
 
 impl ExFlowRuntimeADFActivityExecutor {
@@ -67,17 +68,16 @@ impl ExFlowRuntimeActivityExecutor<ExFlowRuntimeActivityADFParam>
             &activity.factory_name,
             &activity.pipeline_name,
             activity.callback_waiting_sec_time,
-            Some(Box::new(move |response,error| {
+            Some(Box::new(move |response, error| {
                 info!("{:#?}", response);
             })),
         )
         .await;
 
-        result
-            .map(|r| {
-                let result = ExFlowRuntimeActivityResult { run_id: r.run_id };
-                (result, r.join_handle)
-            })
+        result.map(|r| {
+            let result = ExFlowRuntimeActivityResult { run_id: r.run_id };
+            (result, r.join_handle)
+        })
     }
 }
 
@@ -94,7 +94,7 @@ async fn adf_run_process(
     factory_name: &String,
     pipeline_name: &String,
     waiting_sec_time: u64,
-    callback_fn: Option<Box<dyn Fn(&ADFPipelineRunResponse,&Option<AzureCloudError>) + Send>>,
+    callback_fn: Option<Box<dyn Fn(&ADFPipelineRunResponse, &Option<AzureCloudError>) + Send>>,
 ) -> RunProcessResult<RunProcessJoinHandle> {
     let access_token_response = get_azure_access_token_from(None, None).await.unwrap();
     let res_run = adf_pipelines_run(
@@ -140,7 +140,7 @@ async fn adf_run_process(
                                         match callback_fn.as_ref() {
                                             None => {}
                                             Some(callback) => {
-                                                callback(&r,&None);
+                                                callback(&r, &None);
                                             }
                                         }
                                         true
@@ -151,7 +151,7 @@ async fn adf_run_process(
                                         match callback_fn.as_ref() {
                                             None => {}
                                             Some(callback) => {
-                                                callback(&r,&None);
+                                                callback(&r, &None);
                                             }
                                         }
                                         false
@@ -164,7 +164,7 @@ async fn adf_run_process(
                                         match callback_fn.as_ref() {
                                             None => {}
                                             Some(callback) => {
-                                                callback(&r,&None);
+                                                callback(&r, &None);
                                             }
                                         }
                                         false
@@ -176,18 +176,21 @@ async fn adf_run_process(
                                 match callback_fn.as_ref() {
                                     None => {}
                                     Some(callback) => {
-                                        callback(&ADFPipelineRunResponse{
-                                            run_id: None,
-                                            pipeline_name: None,
-                                            parameters: None,
-                                            invoked_by: None,
-                                            run_start: None,
-                                            run_end: None,
-                                            duration_in_ms: None,
-                                            status: Some(ADFPipelineRunStatus::Failed),
-                                            message: None,
-                                            last_updated: None,
-                                        }, &Some(e));
+                                        callback(
+                                            &ADFPipelineRunResponse {
+                                                run_id: None,
+                                                pipeline_name: None,
+                                                parameters: None,
+                                                invoked_by: None,
+                                                run_start: None,
+                                                run_end: None,
+                                                duration_in_ms: None,
+                                                status: Some(ADFPipelineRunStatus::Failed),
+                                                message: None,
+                                                last_updated: None,
+                                            },
+                                            &Some(e),
+                                        );
                                     }
                                 }
                                 false

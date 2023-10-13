@@ -1,7 +1,5 @@
-use std::fmt::Display;
-
-use actix_web::{HttpRequest, HttpResponse, Responder};
 use actix_web::body::BoxBody;
+use actix_web::{HttpRequest, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -38,6 +36,7 @@ pub enum ActivityType {
     RuntimeApi,
     RuntimeCli,
 }
+
 impl ToString for ActivityType {
     fn to_string(&self) -> String {
         match self {
@@ -47,6 +46,7 @@ impl ToString for ActivityType {
         }
     }
 }
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExFlowRuntimeActivityWebRequest {
     #[serde(rename = "activity_type")]

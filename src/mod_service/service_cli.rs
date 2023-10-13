@@ -1,12 +1,13 @@
-use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
+use actix_web::{middleware, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use clap::Parser;
 use log::info;
 
-use crate::mod_ex_flow_utils::uri_endpoints::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
-use crate::mod_ex_flow_utils::utils::set_global_apm_tracing;
-use crate::mod_service_api::service_api::post_register_runtime;
+use crate::mod_db::db::Db;
+use crate::mod_service::service_api::post_register_runtime;
+use crate::mod_utils::uri_endpoints::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
+use crate::mod_utils::utils::set_global_apm_tracing;
 
 const SERVICE_NAME: &'static str = "ExFlow-Service";
 
@@ -39,8 +40,15 @@ impl ExFlowServiceArgs {
         let apm_connection_string = self.apm_connection_string.clone();
         set_global_apm_tracing(apm_connection_string.as_str(), SERVICE_NAME);
 
-        HttpServer::new(|| {
+        let db = Db::new(
+            "nickdatabaseserver001.database.windows.net".to_string(),
+            "nickdatabaseserver001".to_string(),
+            1433,
+        );
+
+        HttpServer::new(move || {
             App::new()
+                .app_data(web::Data::new(db.clone()))
                 .wrap(middleware::DefaultHeaders::new().add(("ExFlow-Runtime-X-Version", "0.1")))
                 .wrap(Logger::default())
                 .wrap(Logger::new(

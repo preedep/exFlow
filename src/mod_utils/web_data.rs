@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::mod_ex_flow_utils::utils::SystemInformation;
+use crate::mod_utils::utils::SystemInformation;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExFlowRuntimeRegisterRequest {

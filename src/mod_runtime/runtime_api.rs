@@ -1,15 +1,16 @@
-use actix_web::{HttpResponse, Responder, web};
+use actix_web::{web, HttpResponse, Responder};
 use tracing_attributes::instrument;
 
-use crate::mod_ex_flow_utils::errors::{ExFlowError, GENERAL_FUNCTION_NOT_SUPPORTED, GENERAL_PARAM_NOT_COMPLETE};
-use crate::mod_runtime_api::entities::{
-    ActivityType, ExFlowRuntimeActivityWebRequest,
-    PipelineRunResponse,
+use crate::mod_runtime::adf_runtime::{
+    ExFlowRuntimeADFActivityExecutor, ExFlowRuntimeActivityADFParam,
 };
-use crate::mod_runtime_cli::adf_runtime::{
-    ExFlowRuntimeActivityADFParam, ExFlowRuntimeADFActivityExecutor,
+use crate::mod_runtime::entities::{
+    ActivityType, ExFlowRuntimeActivityWebRequest, PipelineRunResponse,
 };
-use crate::mod_runtime_cli::interface_runtime::ExFlowRuntimeActivityExecutor;
+use crate::mod_runtime::interface_runtime::ExFlowRuntimeActivityExecutor;
+use crate::mod_utils::errors::{
+    ExFlowError, GENERAL_FUNCTION_NOT_SUPPORTED, GENERAL_PARAM_NOT_COMPLETE,
+};
 
 type ExFlowWebRuntimeResult<T> = Result<T, ExFlowError>;
 
@@ -34,18 +35,13 @@ pub async fn post_run_pipeline(
                 );
                 let runtime_executor = ExFlowRuntimeADFActivityExecutor::new();
                 let runtime_res = runtime_executor.run(&param).await;
-                runtime_res
-                    .map(|result| PipelineRunResponse {
-                        run_id: result.0.run_id,
-                    })
+                runtime_res.map(|result| PipelineRunResponse {
+                    run_id: result.0.run_id,
+                })
             }
         },
-        ActivityType::RuntimeApi => Err(ExFlowError::new(
-            GENERAL_FUNCTION_NOT_SUPPORTED,
-        )),
-        ActivityType::RuntimeCli => Err(ExFlowError::new(
-            GENERAL_FUNCTION_NOT_SUPPORTED,
-        )),
+        ActivityType::RuntimeApi => Err(ExFlowError::new(GENERAL_FUNCTION_NOT_SUPPORTED)),
+        ActivityType::RuntimeCli => Err(ExFlowError::new(GENERAL_FUNCTION_NOT_SUPPORTED)),
     }
 }
 

@@ -1,15 +1,14 @@
 use clokwerk::{Job, TimeUnits};
 use log::{debug, error, info};
 
-use crate::mod_db::db_exflow::get_employees;
-use crate::mod_runtime_api::entities::PipelineRunRequest;
+use crate::mod_runtime::entities::PipelineRunRequest;
 
 mod mod_azure;
-mod mod_ex_flow_utils;
-mod mod_runtime_api;
-mod mod_runtime_cli;
+mod mod_utils;
 
-mod mod_service_api;
+mod mod_runtime;
+
+mod mod_service;
 
 mod mod_db;
 
@@ -43,7 +42,7 @@ async fn main() {
     pretty_env_logger::init();
     info!("ExFlow Scheduler Running...");
 
-    get_employees().await;
+    //get_employees().await;
     /*
         // Create a new scheduler
         let mut scheduler = AsyncScheduler::new();
