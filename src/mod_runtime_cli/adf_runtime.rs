@@ -207,9 +207,7 @@ async fn adf_run_process(
         }
         Err(e) => {
             error!("{:?}", e);
-            Err(ExFlowError::new(
-                RUNTIME_ERROR,
-            ).add_adf_error(&e))
+            Err(ExFlowError::new_with_runtime().add_adf_error(&e))
         }
     }
 }

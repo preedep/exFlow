@@ -24,6 +24,9 @@ impl ExFlowError {
     pub fn new(msg: &'static str) -> Self {
         ExFlowError { error_message: "".to_string(), runtime_adf_error: None }
     }
+    pub fn new_with_runtime() -> Self {
+        ExFlowError { error_message: RUNTIME_ERROR.to_string(), runtime_adf_error: None }
+    }
 
     pub fn add_adf_error(&mut self,adf_error: &AzureCloudError) -> Self {
         self.runtime_adf_error = Some(adf_error.clone());

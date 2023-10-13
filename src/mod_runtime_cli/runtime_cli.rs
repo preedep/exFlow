@@ -104,30 +104,7 @@ impl ExFlowRuntimeArgs {
                 pipeline_name,
             }) => {
                 info!("Run with CLI arguments");
-
-                let param = ExFlowRuntimeActivityADFParam::new(
-                    subscription_id,
-                    resource_group_name,
-                    factory_name,
-                    pipeline_name,
-                    3u64,
-                    None,
-                );
-                let runtime_executor = ExFlowRuntimeADFActivityExecutor::new();
-
-                let runtime_res = runtime_executor.run(&param).await;
-                match runtime_res {
-                    Ok(r) => {
-                        info!(
-                            "Run with CLI arguments successfully > run_id [{:#?}]",
-                            r.0.run_id
-                        );
-                        r.1.join().expect("Runtime activity waiting failed");
-                    }
-                    Err(e) => {
-                        error!("Runtime activity failed : {:#?}", e);
-                    }
-                }
+                Self::cli_adf_handler(subscription_id, resource_group_name, factory_name, pipeline_name).await;
                 Ok(())
             }
             Some(Commands::Runtime {
@@ -143,7 +120,6 @@ impl ExFlowRuntimeArgs {
                 // Register this runtime to ExFlow Service
                 Self::register_runtime_to_service(ex_flow_service_endpoint, client_id).await;
                 info!("ExFlow Runtime Started");
-
                 HttpServer::new(|| {
                     App::new()
                         .wrap(
@@ -171,6 +147,31 @@ impl ExFlowRuntimeArgs {
                 .bind(("0.0.0.0", *port_number))?
                 .run()
                 .await
+            }
+        }
+    }
+
+    async fn cli_adf_handler(subscription_id: &String, resource_group_name: &String, factory_name: &String, pipeline_name: &String) {
+        let param = ExFlowRuntimeActivityADFParam::new(
+            subscription_id,
+            resource_group_name,
+            factory_name,
+            pipeline_name,
+            3u64,
+            None,
+        );
+        let runtime_executor = ExFlowRuntimeADFActivityExecutor::new();
+        let runtime_res = runtime_executor.run(&param).await;
+        match runtime_res {
+            Ok(r) => {
+                info!(
+                            "Run with CLI arguments successfully > run_id [{:#?}]",
+                            r.0.run_id
+                        );
+                r.1.join().expect("Runtime activity waiting failed");
+            }
+            Err(e) => {
+                error!("Runtime activity failed : {:#?}", e);
             }
         }
     }
