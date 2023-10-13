@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::mod_azure::azure::{adf_pipelines_get, adf_pipelines_run, get_azure_access_token_from};
 use crate::mod_azure::entities::{ADFPipelineRunResponse, ADFPipelineRunStatus, AzureCloudError};
-use crate::mod_ex_flow_utils::errors::{ExFlowError, RUNTIME_ERROR};
+use crate::mod_ex_flow_utils::errors::ExFlowError;
 use crate::mod_ex_flow_utils::utils::string_to_static_str;
 use crate::mod_runtime_cli::interface_runtime::{
     ExFlowRuntimeActivityExecutor, ExFlowRuntimeActivityExecutorResult, ExFlowRuntimeActivityResult,

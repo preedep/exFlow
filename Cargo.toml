@@ -81,17 +81,18 @@ exflow_service_required = [
     "serde_urlencoded",
     "tiberius",
     "sysinfo",
-    "local-ip-address"]
+    "local-ip-address"
+]
 
 [[bin]]
 name = "exflow_runtime"
 path = "src/main_exflow_runtime.rs"
 required-features = ["exflow_runtime_required"]
 
-
 [[bin]]
 name = "exflow_service"
 path = "src/main_exflow_service.rs"
+required-features = ["exflow_service_required"]
 
 [[bin]]
 name = "exflow_scheduler"

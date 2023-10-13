@@ -1,13 +1,11 @@
-use std::fmt::Display;
-
 use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
 use actix_web_opentelemetry::RequestTracing;
 use clap::{command, Parser, Subcommand};
 use http::StatusCode;
 use log::{debug, error, info};
-use crate::mod_ex_flow_utils::errors::ExFlowError;
 
+use crate::mod_ex_flow_utils::errors::ExFlowError;
 use crate::mod_ex_flow_utils::uri_endpoints::{
     EX_FLOW_RUNTIME_API_GET_PIPELINE, EX_FLOW_RUNTIME_API_RUN_PIPELINE, EX_FLOW_RUNTIME_API_SCOPE,
     EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE,
@@ -120,6 +118,7 @@ impl ExFlowRuntimeArgs {
                 set_global_apm_tracing(apm_connection_string.as_str(), APM_SERVICE_NAME);
                 // Register this runtime to ExFlow Service
                 let _ = Self::register_runtime_to_service(ex_flow_service_endpoint, client_id).await;
+
 
                 info!("ExFlow Runtime Started");
                 HttpServer::new(|| {

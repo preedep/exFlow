@@ -6,6 +6,8 @@ mod mod_ex_flow_utils;
 mod mod_service_api;
 mod mod_service_cli;
 
+mod mod_db;
+
 mod mod_azure;
 mod mod_runtime_api;
 mod mod_runtime_cli;
