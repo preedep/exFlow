@@ -1,18 +1,17 @@
 use actix_web::{HttpResponse, Responder, web};
 use tracing_attributes::instrument;
 
-use crate::mod_ex_flow_utils::errors::{GENERAL_FUNCTION_NOT_SUPPORTED, GENERAL_PARAM_NOT_COMPLETE};
+use crate::mod_ex_flow_utils::errors::{ExFlowError, GENERAL_FUNCTION_NOT_SUPPORTED, GENERAL_PARAM_NOT_COMPLETE};
 use crate::mod_runtime_api::entities::{
     ActivityType, ExFlowRuntimeActivityWebRequest,
     PipelineRunResponse,
 };
-use crate::mod_runtime_api::errors::ExFlowRuntimeWebError;
 use crate::mod_runtime_cli::adf_runtime::{
     ExFlowRuntimeActivityADFParam, ExFlowRuntimeADFActivityExecutor,
 };
 use crate::mod_runtime_cli::interface_runtime::ExFlowRuntimeActivityExecutor;
 
-type ExFlowWebRuntimeResult<T> = Result<T, ExFlowRuntimeWebError>;
+type ExFlowWebRuntimeResult<T> = Result<T, ExFlowError>;
 
 #[instrument]
 pub async fn post_run_pipeline(
@@ -23,7 +22,7 @@ pub async fn post_run_pipeline(
     //
     match &request.activity_type {
         ActivityType::RunTimeAdf => match &request.adf_request {
-            None => Err(ExFlowRuntimeWebError::new(GENERAL_PARAM_NOT_COMPLETE.to_string())),
+            None => Err(ExFlowError::new(GENERAL_PARAM_NOT_COMPLETE)),
             Some(request) => {
                 let param = ExFlowRuntimeActivityADFParam::new(
                     request.subscription_id.as_str(),
@@ -39,14 +38,13 @@ pub async fn post_run_pipeline(
                     .map(|result| PipelineRunResponse {
                         run_id: result.0.run_id,
                     })
-                    .map_err(|e| ExFlowRuntimeWebError::new(e.to_string()))
             }
         },
-        ActivityType::RuntimeApi => Err(ExFlowRuntimeWebError::new(
-            GENERAL_FUNCTION_NOT_SUPPORTED.to_string(),
+        ActivityType::RuntimeApi => Err(ExFlowError::new(
+            GENERAL_FUNCTION_NOT_SUPPORTED,
         )),
-        ActivityType::RuntimeCli => Err(ExFlowRuntimeWebError::new(
-            GENERAL_FUNCTION_NOT_SUPPORTED.to_string(),
+        ActivityType::RuntimeCli => Err(ExFlowError::new(
+            GENERAL_FUNCTION_NOT_SUPPORTED,
         )),
     }
 }

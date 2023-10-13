@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter};
+use std::fmt::Display;
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::Duration;
@@ -78,39 +78,15 @@ impl ExFlowRuntimeActivityExecutor<ExFlowRuntimeActivityADFParam>
                 let result = ExFlowRuntimeActivityResult { run_id: r.run_id };
                 (result, r.join_handle)
             })
-            .map_err(|e|
-                ExFlowError::new(
-                    string_to_static_str(&e.error_message)
-                )
-            )
     }
 }
 
-#[derive(Debug,Clone)]
-struct RunProcessError {
-    pub error_message: String,
-    pub azure_error: Option<AzureCloudError>,
-}
-impl RunProcessError {
-    pub fn new(error_message: String) -> Self {
-        RunProcessError { error_message, azure_error: None }
-    }
-    pub fn add_adf_error(&mut self,adf_error: &AzureCloudError) -> Self {
-        self.azure_error = Some(adf_error.clone());
-        self.clone()
-    }
-}
-impl Display for RunProcessError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:#?}", self)
-    }
-}
 struct RunProcessJoinHandle {
     pub run_id: String,
     pub join_handle: JoinHandle<()>,
 }
 
-type RunProcessResult<T> = Result<T, RunProcessError>;
+type RunProcessResult<T> = Result<T, ExFlowError>;
 
 async fn adf_run_process(
     subscription_id: &String,
@@ -231,8 +207,8 @@ async fn adf_run_process(
         }
         Err(e) => {
             error!("{:?}", e);
-            Err(RunProcessError::new(
-                RUNTIME_ERROR.to_string(),
+            Err(ExFlowError::new(
+                RUNTIME_ERROR,
             ).add_adf_error(&e))
         }
     }
