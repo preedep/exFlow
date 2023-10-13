@@ -1,4 +1,5 @@
-use std::fmt::{Display,Formatter};
+use std::fmt::{Display, Formatter};
+
 use derive_more::Error;
 use serde::{Deserialize, Serialize};
 
