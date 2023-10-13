@@ -6,7 +6,7 @@ create table tbl_exflow_app
     app_name   varchar(255)               not null,
     app_detail varchar(255)               not null,
     created_dt datetime default getdate() not null,
-    updated_dt datetime default getdate(),
+    updated_dt datetime default getdate() not null,
     updated_by varchar(255)
 );
 

@@ -6,6 +6,7 @@ use actix_web_opentelemetry::RequestTracing;
 use clap::{command, Parser, Subcommand};
 use http::StatusCode;
 use log::{debug, error, info};
+use crate::mod_ex_flow_utils::errors::ExFlowError;
 
 use crate::mod_ex_flow_utils::uri_endpoints::{
     EX_FLOW_RUNTIME_API_GET_PIPELINE, EX_FLOW_RUNTIME_API_RUN_PIPELINE, EX_FLOW_RUNTIME_API_SCOPE,
@@ -118,7 +119,8 @@ impl ExFlowRuntimeArgs {
                 // Setup global apm (application performance monitoring)
                 set_global_apm_tracing(apm_connection_string.as_str(), APM_SERVICE_NAME);
                 // Register this runtime to ExFlow Service
-                Self::register_runtime_to_service(ex_flow_service_endpoint, client_id).await;
+                let _ = Self::register_runtime_to_service(ex_flow_service_endpoint, client_id).await;
+
                 info!("ExFlow Runtime Started");
                 HttpServer::new(|| {
                     App::new()
@@ -176,7 +178,8 @@ impl ExFlowRuntimeArgs {
         }
     }
 
-    async fn register_runtime_to_service(ex_flow_service_endpoint: &String, client_id: &String) {
+    async fn register_runtime_to_service(ex_flow_service_endpoint: &String, client_id: &String) -> Result<(),ExFlowError>
+    {
         let sys_info = get_system_info();
         let end_point = format!(
             "http://{}{}{}",
@@ -199,9 +202,9 @@ impl ExFlowRuntimeArgs {
                     Ok(r) => {
                         let is_register_complete = r.status() == StatusCode::OK;
                         if is_register_complete {
-                            info!("Registering... to exFlow service [{:#?}]", r);
-                        } else {
-                            panic!("Cannot register ExFlowRuntime : {:#?}", r);
+                            Ok(())
+                        }else{
+                            Err(ExFlowError::new(""))
                         }
                     }
                     Err(e) => {
@@ -210,7 +213,7 @@ impl ExFlowRuntimeArgs {
                 }
             }
             Err(e) => {
-                panic!("Get system info failed : {}", e);
+                Err(e)
             }
         }
     }
