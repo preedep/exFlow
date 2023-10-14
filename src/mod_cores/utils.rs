@@ -34,10 +34,10 @@ pub fn set_global_apm_tracing(apm_connection_string: &str, service_name: &str) {
         let exporter = opentelemetry_application_insights::new_pipeline_from_connection_string(
             apm_connection_string,
         )
-        .unwrap()
-        .with_client(reqwest::Client::new())
-        .with_service_name(service_name.to_string())
-        .install_batch(opentelemetry::runtime::Tokio);
+            .unwrap()
+            .with_client(reqwest::Client::new())
+            .with_service_name(service_name.to_string())
+            .install_batch(opentelemetry::runtime::Tokio);
 
         let telemetry = tracing_opentelemetry::layer().with_tracer(exporter);
         let subscriber = Registry::default().with(telemetry);

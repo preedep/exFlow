@@ -12,7 +12,7 @@ pub struct TblExFlowRuntimeClients {
     #[serde(rename = "client_id")]
     pub client_id: String,
     #[serde(rename = "host_name")]
-    pub host_name: String,
+    pub host_name: Option<String>,
     #[serde(rename = "host_ip")]
     pub host_ip: String,
     #[serde(rename = "created_dt")]
@@ -20,11 +20,12 @@ pub struct TblExFlowRuntimeClients {
     #[serde(rename = "updated_dt")]
     pub updated_dt: Option<chrono::NaiveDateTime>,
 }
+
 impl From<ExFlowRuntimeRegisterRequest> for TblExFlowRuntimeClients {
     fn from(value: ExFlowRuntimeRegisterRequest) -> Self {
         TblExFlowRuntimeClients {
             client_id: value.client_id,
-            host_name: value.host_name.unwrap_or("".to_string()),
+            host_name: Some(value.host_name.unwrap_or("".to_string())),
             host_ip: value.host_ip,
             created_dt: None,
             updated_dt: None,
