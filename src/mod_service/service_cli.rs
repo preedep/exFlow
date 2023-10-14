@@ -41,7 +41,7 @@ impl ExFlowServiceArgs {
         set_global_apm_tracing(apm_connection_string.as_str(), SERVICE_NAME);
 
         let pool = MySqlPoolOptions::new().max_connections(10)
-            .connect(/*"file:exflow.db"*/"").await;
+            .connect("mssql://exflow_user:P@ssw0rd@localhost:3306/exFlowDb").await;
 
         match pool {
             Ok(pool) => {

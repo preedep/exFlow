@@ -1,5 +1,5 @@
 use actix_web::web;
-use log::debug;
+use log::{debug, error};
 use sqlx::{MySqlPool};
 use tracing_attributes::instrument;
 
@@ -19,12 +19,10 @@ pub async fn post_register_runtime(
     let res = sqlx::query(
         r#"insert into
                 tbl_exflow_runtime_clients(client_id,host_name,host_ip,updated_dt)
-                values(?,?,?,datetime('now', 'localtime'))
-                    on CONFLICT(client_id)
-                        do update set host_name=? ,
+                values(?,?,?,CURRENT_TIMESTAMP())
+                    on DUPLICATE key update host_name=? ,
                         host_ip=? ,
-                        updated_dt = datetime('now', 'localtime')
-                        where client_id = ?
+                        updated_dt = CURRENT_TIMESTAMP()
              "#
     ).bind(&tbl.client_id)
         .bind(&tbl.host_name)
@@ -38,6 +36,7 @@ pub async fn post_register_runtime(
             row_effected : r.rows_affected()
         }
     }).map_err(|e|{
+        error!("Insert failed with error {:?}",e);
         let e = e.as_database_error().map(|err|{
             err.message()
         });
