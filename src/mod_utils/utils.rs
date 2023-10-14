@@ -7,7 +7,7 @@ use tracing_subscriber::Registry;
 
 use crate::mod_utils::errors::ExFlowError;
 
-type ExFlowResult<T> = Result<T, ExFlowError>;
+pub type ExFlowResult<T> = Result<T, ExFlowError>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SystemInformation {

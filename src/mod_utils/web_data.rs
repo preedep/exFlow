@@ -1,6 +1,11 @@
+use actix_web::{HttpRequest, HttpResponse, Responder};
+use actix_web::body::BoxBody;
 use serde::{Deserialize, Serialize};
 
+
 use crate::mod_utils::utils::SystemInformation;
+
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExFlowRuntimeRegisterRequest {
@@ -19,5 +24,17 @@ impl ExFlowRuntimeRegisterRequest {
             host_name: Some(sys_info.clone().host_name),
             host_ip: sys_info.clone().host_ip,
         }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExFlowRuntimeRegisterResponse {
+
+}
+impl Responder for ExFlowRuntimeRegisterResponse{
+    type Body = BoxBody;
+
+    fn respond_to(self, req: &HttpRequest) -> HttpResponse<Self::Body> {
+        HttpResponse::Ok().json(&self)
     }
 }

@@ -11,13 +11,12 @@ use crate::mod_runtime::interface_runtime::ExFlowRuntimeActivityExecutor;
 use crate::mod_utils::errors::{
     ExFlowError, GENERAL_FUNCTION_NOT_SUPPORTED, GENERAL_PARAM_NOT_COMPLETE,
 };
-
-type ExFlowWebRuntimeResult<T> = Result<T, ExFlowError>;
+use crate::mod_utils::utils::ExFlowResult;
 
 #[instrument]
 pub async fn post_run_pipeline(
     request: web::Json<ExFlowRuntimeActivityWebRequest>,
-) -> ExFlowWebRuntimeResult<PipelineRunResponse> {
+) -> ExFlowResult<PipelineRunResponse> {
     //
     // Call run_process is same CLI
     //
