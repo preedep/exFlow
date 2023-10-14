@@ -3,7 +3,7 @@ use actix_web::middleware::Logger;
 use actix_web_opentelemetry::RequestTracing;
 use clap::Parser;
 use log::{debug, info};
-use sqlx::sqlite::SqlitePoolOptions;
+use sqlx::mysql::MySqlPoolOptions;
 
 use crate::mod_cores::uri_endpoints::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
 use crate::mod_cores::utils::set_global_apm_tracing;
@@ -40,8 +40,8 @@ impl ExFlowServiceArgs {
         let apm_connection_string = self.apm_connection_string.clone();
         set_global_apm_tracing(apm_connection_string.as_str(), SERVICE_NAME);
 
-        let pool = SqlitePoolOptions::new().max_connections(10)
-            .connect("file:exflow.db").await;
+        let pool = MySqlPoolOptions::new().max_connections(10)
+            .connect(/*"file:exflow.db"*/"").await;
 
         match pool {
             Ok(pool) => {
