@@ -1,5 +1,11 @@
+use actix_web::web;
 use clokwerk::{Job, TimeUnits};
 use log::{debug, error, info};
+use sqlx::{Error, MySql, Pool};
+use sqlx::mysql::MySqlPoolOptions;
+use crate::mod_cores::errors::ExFlowError;
+use crate::mod_db::db_exflow_runtime::get_register_runtime_list;
+use crate::mod_db::entities::TblExFlowRuntimeClients;
 
 use crate::mod_runtime::entities::PipelineRunRequest;
 
@@ -41,32 +47,27 @@ async fn run_adf_job() {
 async fn main() {
     pretty_env_logger::init();
     info!("ExFlow Scheduler Running...");
-
-    //get_employees().await;
-    /*
-        // Create a new scheduler
-        let mut scheduler = AsyncScheduler::new();
-    // Add some tasks to it
-        scheduler
-            .every(1.minutes())
-            .run(|| async {
-                run_adf_job().await
-            });
-        scheduler
-            .every(1.minutes())
-            .run(|| async {
-                info!("Scheduler Running 1");
-                run_adf_job().await
-            });
-        scheduler
-            .every(1.minutes())
-            .run(|| async {
-                info!("Scheduler Running 2");
-                run_adf_job().await
-            });
-        loop {
-            scheduler.run_pending().await;
-            tokio::time::sleep(Duration::from_millis(10)).await;
+    let pool = MySqlPoolOptions::new()
+        .max_connections(10)
+        .connect("mssql://exflow_user:P@ssw0rd@localhost:3306/exFlowDb")
+        .await;
+    match pool {
+        Ok(p) => {
+            let r =
+                get_register_runtime_list(web::Data::new(p.clone())).await;
+            match r {
+                Ok(l) => {
+                    for item in l.iter() {
+                        debug!("{:#?}" ,item);
+                    }
+                }
+                Err(e) => {
+                    error!("Error {:#?}", e);
+                }
+            }
         }
-         */
+        Err(e) => {
+            error!("Error {:?}", e);
+        }
+    }
 }
