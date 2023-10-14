@@ -63,7 +63,8 @@ exflow_runtime_required = [
     "serde_qs",
     "serde_urlencoded",
     "sysinfo",
-    "local-ip-address"
+    "local-ip-address",
+    "sqlx"
 ]
 
 exflow_scheduler_required = [

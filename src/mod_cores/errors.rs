@@ -28,7 +28,10 @@ impl ExFlowError {
         }
     }
     pub fn new_string(msg: String) -> Self {
-        ExFlowError { error_message: msg, runtime_adf_error:None}
+        ExFlowError {
+            error_message: msg,
+            runtime_adf_error: None,
+        }
     }
     pub fn new_with_runtime() -> Self {
         ExFlowError {

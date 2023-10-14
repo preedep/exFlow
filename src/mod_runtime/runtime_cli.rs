@@ -1,5 +1,5 @@
-use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
+use actix_web::{middleware, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use clap::{command, Parser, Subcommand};
 use http::StatusCode;
@@ -10,10 +10,10 @@ use crate::mod_cores::uri_endpoints::{
     EX_FLOW_RUNTIME_API_GET_PIPELINE, EX_FLOW_RUNTIME_API_RUN_PIPELINE, EX_FLOW_RUNTIME_API_SCOPE,
     EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE,
 };
-use crate::mod_cores::utils::{get_system_info, set_global_apm_tracing};
-use crate::mod_cores::web_data::ExFlowRuntimeRegisterRequest;
+use crate::mod_cores::utils::{get_system_info, set_global_apm_tracing, string_to_static_str};
+use crate::mod_cores::web_data::{ExFlowRuntimeRegisterRequest, ExFlowRuntimeRegisterResponse};
 use crate::mod_runtime::adf_runtime::{
-    ExFlowRuntimeActivityADFParam, ExFlowRuntimeADFActivityExecutor,
+    ExFlowRuntimeADFActivityExecutor, ExFlowRuntimeActivityADFParam,
 };
 use crate::mod_runtime::interface_runtime::ExFlowRuntimeActivityExecutor;
 use crate::mod_runtime::runtime_api::{get_status_pipeline, post_run_pipeline};
@@ -123,9 +123,16 @@ impl ExFlowRuntimeArgs {
                 // Setup global apm (application performance monitoring)
                 set_global_apm_tracing(apm_connection_string.as_str(), APM_SERVICE_NAME);
                 // Register this runtime to ExFlow Service
-                let _ =
+                let res =
                     Self::register_runtime_to_service(ex_flow_service_endpoint, client_id).await;
-
+                match res {
+                    Ok(_) => {
+                        info!("Register Runtime to ExFlow Service successfully");
+                    }
+                    Err(e) => {
+                        panic!("Failed to register runtime {:#?}",e);
+                    }
+                }
                 info!("ExFlow Runtime Started");
                 HttpServer::new(|| {
                     App::new()
@@ -198,7 +205,6 @@ impl ExFlowRuntimeArgs {
             ex_flow_service_endpoint, EX_FLOW_SERVICE_API_SCOPE, EX_FLOW_SERVICE_API_IR_REGISTER
         );
         debug!("Registering... to exFlow service [{}]", end_point);
-
         match sys_info {
             Ok(s) => {
                 let request = ExFlowRuntimeRegisterRequest::new(client_id.as_str(), &s);
@@ -212,14 +218,17 @@ impl ExFlowRuntimeArgs {
                     Ok(r) => {
                         let is_register_complete = r.status() == StatusCode::OK;
                         if is_register_complete {
-                            debug!("Register complete : {:#?}", r);
+                            let r = r.json::<ExFlowRuntimeRegisterResponse>().await
+                                .expect("Parse ExFlowRuntimeRegisterResponse failed to register");
                             Ok(())
                         } else {
-                            Err(ExFlowError::new(""))
+                            Err(r.json::<ExFlowError>().await.expect("Parse ExFlowError failed to register"))
                         }
                     }
                     Err(e) => {
-                        panic!("Cannot register ExFlowRuntime {:?}", e);
+                        let mut error = String::new();
+                        error.push_str(e.to_string().as_str());
+                        Err(ExFlowError::new(string_to_static_str(&error)))
                     }
                 }
             }

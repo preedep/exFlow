@@ -9,20 +9,19 @@ use crate::mod_cores::web_data::ExFlowRuntimeRegisterRequest;
 ///
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct TblExFlowRuntimeClients {
-    #[serde(rename="client_id")]
+    #[serde(rename = "client_id")]
     pub client_id: String,
-    #[serde(rename="host_name")]
+    #[serde(rename = "host_name")]
     pub host_name: String,
-    #[serde(rename="host_ip")]
+    #[serde(rename = "host_ip")]
     pub host_ip: String,
-    #[serde(rename="created_dt")]
+    #[serde(rename = "created_dt")]
     pub created_dt: Option<chrono::NaiveDateTime>,
-    #[serde(rename="updated_dt")]
+    #[serde(rename = "updated_dt")]
     pub updated_dt: Option<chrono::NaiveDateTime>,
 }
 impl From<ExFlowRuntimeRegisterRequest> for TblExFlowRuntimeClients {
     fn from(value: ExFlowRuntimeRegisterRequest) -> Self {
-
         TblExFlowRuntimeClients {
             client_id: value.client_id,
             host_name: value.host_name.unwrap_or("".to_string()),

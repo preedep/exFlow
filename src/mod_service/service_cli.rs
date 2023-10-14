@@ -1,5 +1,5 @@
-use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
+use actix_web::{middleware, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use clap::Parser;
 use log::{debug, info};
@@ -40,17 +40,21 @@ impl ExFlowServiceArgs {
         let apm_connection_string = self.apm_connection_string.clone();
         set_global_apm_tracing(apm_connection_string.as_str(), SERVICE_NAME);
 
-        let pool = MySqlPoolOptions::new().max_connections(10)
-            .connect("mssql://exflow_user:P@ssw0rd@localhost:3306/exFlowDb").await;
+        let pool = MySqlPoolOptions::new()
+            .max_connections(10)
+            .connect("mssql://exflow_user:P@ssw0rd@localhost:3306/exFlowDb")
+            .await;
 
         match pool {
             Ok(pool) => {
-
                 debug!("DB connection successfully");
                 HttpServer::new(move || {
                     App::new()
                         .app_data(web::Data::new(pool.clone()))
-                        .wrap(middleware::DefaultHeaders::new().add(("ExFlow-Runtime-X-Version", "0.1")))
+                        .wrap(
+                            middleware::DefaultHeaders::new()
+                                .add(("ExFlow-Runtime-X-Version", "0.1")),
+                        )
                         .wrap(Logger::default())
                         .wrap(Logger::new(
                             r#"%a %t "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#,
@@ -61,16 +65,14 @@ impl ExFlowServiceArgs {
                             web::post().to(post_register_runtime),
                         ))
                 })
-                    .workers(10)
-                    .bind(("0.0.0.0", self.port_number))?
-                    .run()
-                    .await
+                .workers(10)
+                .bind(("0.0.0.0", self.port_number))?
+                .run()
+                .await
             }
             Err(e) => {
                 panic!("DB connection failed : {:?}", e);
             }
         }
-
-
     }
 }
