@@ -3,13 +3,12 @@ use log::{debug, error};
 use sqlx::MySqlPool;
 
 use crate::mod_cores::errors::ExFlowError;
-use crate::mod_cores::web_data::ExFlowRuntimeRegisterResponse;
 use crate::mod_db::entities::TblExFlowRuntimeClients;
 
 pub async fn register_exflow_runtime(
     pool: Data<MySqlPool>,
     tbl: &TblExFlowRuntimeClients,
-) -> Result<ExFlowRuntimeRegisterResponse, ExFlowError> {
+) -> Result<u64, ExFlowError> {
     let res = sqlx::query(
         r#"insert into
                 tbl_exflow_runtime_clients(client_id,host_name,host_ip,updated_dt)
@@ -28,12 +27,28 @@ pub async fn register_exflow_runtime(
     .await;
     res.map(|r| {
         debug!("post_register_runtime : {:#?}", r);
-        ExFlowRuntimeRegisterResponse {
-            row_effected: r.rows_affected(),
-        }
+        r.rows_affected()
     })
     .map_err(|e| {
         error!("Insert failed with error {:?}", e);
+        let e = e.as_database_error().map(|err| err.message());
+        let mut msg = String::new();
+        msg.push_str(e.unwrap_or(""));
+        ExFlowError::new_string(msg)
+    })
+}
+pub async fn get_register_runtime_list(
+    pool: Data<MySqlPool>,
+) -> Result<Vec<TblExFlowRuntimeClients>, ExFlowError> {
+    let res = sqlx::query_as::<_, TblExFlowRuntimeClients>(
+        r#"
+        select * from tbl_exflow_runtime_clients
+    "#,
+    )
+    .fetch_all(pool.as_ref())
+    .await;
+    res.map_err(|e| {
+        error!("Get List of runtime clients failed with error {:?}", e);
         let e = e.as_database_error().map(|err| err.message());
         let mut msg = String::new();
         msg.push_str(e.unwrap_or(""));
