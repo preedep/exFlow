@@ -212,6 +212,7 @@ impl ExFlowRuntimeArgs {
                     Ok(r) => {
                         let is_register_complete = r.status() == StatusCode::OK;
                         if is_register_complete {
+                            debug!("Register complete : {:#?}", r);
                             Ok(())
                         } else {
                             Err(ExFlowError::new(""))
