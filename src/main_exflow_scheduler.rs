@@ -10,7 +10,6 @@ mod mod_runtime;
 
 mod mod_service;
 
-
 mod mod_db;
 
 async fn run_adf_job() {

@@ -130,7 +130,7 @@ impl ExFlowRuntimeArgs {
                         info!("Register Runtime to ExFlow Service successfully");
                     }
                     Err(e) => {
-                        panic!("Failed to register runtime {:#?}",e);
+                        panic!("Failed to register runtime {:#?}", e);
                     }
                 }
                 info!("ExFlow Runtime Started");
@@ -218,11 +218,16 @@ impl ExFlowRuntimeArgs {
                     Ok(r) => {
                         let is_register_complete = r.status() == StatusCode::OK;
                         if is_register_complete {
-                            let r = r.json::<ExFlowRuntimeRegisterResponse>().await
+                            let r = r
+                                .json::<ExFlowRuntimeRegisterResponse>()
+                                .await
                                 .expect("Parse ExFlowRuntimeRegisterResponse failed to register");
                             Ok(())
                         } else {
-                            Err(r.json::<ExFlowError>().await.expect("Parse ExFlowError failed to register"))
+                            Err(r
+                                .json::<ExFlowError>()
+                                .await
+                                .expect("Parse ExFlowError failed to register"))
                         }
                     }
                     Err(e) => {
