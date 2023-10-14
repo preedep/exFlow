@@ -1,12 +1,12 @@
-use actix_web::{HttpResponse, Responder, web};
-use log::{debug, error};
+use actix_web::web;
+use log::debug;
 use sqlx::SqlitePool;
 use tracing_attributes::instrument;
 
+use crate::mod_cores::errors::ExFlowError;
+use crate::mod_cores::utils::ExFlowResult;
+use crate::mod_cores::web_data::{ExFlowRuntimeRegisterRequest, ExFlowRuntimeRegisterResponse};
 use crate::mod_db::entities::TblExFlowRuntimeClients;
-use crate::mod_utils::errors::ExFlowError;
-use crate::mod_utils::utils::ExFlowResult;
-use crate::mod_utils::web_data::{ExFlowRuntimeRegisterRequest, ExFlowRuntimeRegisterResponse};
 
 #[instrument]
 pub async fn post_register_runtime(
@@ -35,7 +35,7 @@ pub async fn post_register_runtime(
     res.map(|r|{
         debug!("post_register_runtime : {:#?}",r);
         ExFlowRuntimeRegisterResponse{
-
+            row_effected : r.rows_affected()
         }
     }).map_err(|e|{
         let e = e.as_database_error().map(|err|{

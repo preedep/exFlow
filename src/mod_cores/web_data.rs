@@ -3,7 +3,7 @@ use actix_web::body::BoxBody;
 use serde::{Deserialize, Serialize};
 
 
-use crate::mod_utils::utils::SystemInformation;
+use crate::mod_cores::utils::SystemInformation;
 
 
 
@@ -29,7 +29,8 @@ impl ExFlowRuntimeRegisterRequest {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExFlowRuntimeRegisterResponse {
-
+    #[serde(rename = "row_effected")]
+     pub row_effected : u64
 }
 impl Responder for ExFlowRuntimeRegisterResponse{
     type Body = BoxBody;

@@ -4,7 +4,7 @@ use log::{debug, error, info};
 use crate::mod_runtime::entities::PipelineRunRequest;
 
 mod mod_azure;
-mod mod_utils;
+mod mod_cores;
 
 mod mod_runtime;
 

@@ -5,9 +5,9 @@ use clap::Parser;
 use log::{debug, info};
 use sqlx::sqlite::SqlitePoolOptions;
 
+use crate::mod_cores::uri_endpoints::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
+use crate::mod_cores::utils::set_global_apm_tracing;
 use crate::mod_service::service_api::post_register_runtime;
-use crate::mod_utils::uri_endpoints::{EX_FLOW_SERVICE_API_IR_REGISTER, EX_FLOW_SERVICE_API_SCOPE};
-use crate::mod_utils::utils::set_global_apm_tracing;
 
 const SERVICE_NAME: &'static str = "ExFlow-Service";
 

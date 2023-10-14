@@ -5,7 +5,7 @@ use sysinfo::{NetworkExt, System, SystemExt};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::Registry;
 
-use crate::mod_utils::errors::ExFlowError;
+use crate::mod_cores::errors::ExFlowError;
 
 pub type ExFlowResult<T> = Result<T, ExFlowError>;
 

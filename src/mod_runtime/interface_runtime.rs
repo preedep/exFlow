@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use crate::mod_utils::errors::ExFlowError;
+use crate::mod_cores::errors::ExFlowError;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExFlowRuntimeActivityResult {

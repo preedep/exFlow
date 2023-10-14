@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
-use crate::mod_utils::web_data::ExFlowRuntimeRegisterRequest;
+use crate::mod_cores::web_data::ExFlowRuntimeRegisterRequest;
 
 ///
 /// TblExFlowRuntimeClients is struct representing tbl_exflow_runtime_clients

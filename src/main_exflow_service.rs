@@ -3,7 +3,7 @@ use clap::Parser;
 use crate::mod_service::service_cli::ExFlowServiceArgs;
 
 mod mod_service;
-mod mod_utils;
+mod mod_cores;
 
 mod mod_db;
 
