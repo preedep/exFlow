@@ -1,5 +1,5 @@
-use actix_web::{App, HttpServer, middleware, web};
 use actix_web::middleware::Logger;
+use actix_web::{middleware, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use clap::{command, Parser, Subcommand};
 use http::StatusCode;
@@ -13,7 +13,7 @@ use crate::mod_cores::uri_endpoints::{
 use crate::mod_cores::utils::{get_system_info, set_global_apm_tracing, string_to_static_str};
 use crate::mod_cores::web_data::{ExFlowRuntimeRegisterRequest, ExFlowRuntimeRegisterResponse};
 use crate::mod_runtime::adf_runtime::{
-    ExFlowRuntimeActivityADFParam, ExFlowRuntimeADFActivityExecutor,
+    ExFlowRuntimeADFActivityExecutor, ExFlowRuntimeActivityADFParam,
 };
 use crate::mod_runtime::interface_runtime::ExFlowRuntimeActivityExecutor;
 use crate::mod_runtime::runtime_api::{get_status_pipeline, post_run_pipeline};
@@ -28,11 +28,11 @@ const RUNTIME_V_VERSION: &'static str = "0.1";
 #[command(author = "Preedee Ponchevin <preedee.digital@gmail.com>")]
 #[command(version = "1.0")]
 #[command(
-about = "ExFlow (Extended) Flow , Runtime for integration with ADF , Step Function , etc."
+    about = "ExFlow (Extended) Flow , Runtime for integration with ADF , Step Function , etc."
 )]
 #[command(propagate_version = true)]
 #[command(
-help_template = "{about-section}Version: {version} \n {author} \n\n {usage-heading} {usage} \n {all-args} {tab}"
+    help_template = "{about-section}Version: {version} \n {author} \n\n {usage-heading} {usage} \n {all-args} {tab}"
 )]
 pub struct ExFlowRuntimeArgs {
     #[command(subcommand)]
@@ -97,11 +97,11 @@ impl ExFlowRuntimeArgs {
                 Ok(())
             }
             Some(Commands::CliAdf {
-                     subscription_id,
-                     resource_group_name,
-                     factory_name,
-                     pipeline_name,
-                 }) => {
+                subscription_id,
+                resource_group_name,
+                factory_name,
+                pipeline_name,
+            }) => {
                 info!("Run with CLI arguments");
                 Self::cli_adf_handler(
                     subscription_id,
@@ -109,15 +109,15 @@ impl ExFlowRuntimeArgs {
                     factory_name,
                     pipeline_name,
                 )
-                    .await;
+                .await;
                 Ok(())
             }
             Some(Commands::Runtime {
-                     ex_flow_service_endpoint,
-                     client_id,
-                     port_number,
-                     apm_connection_string,
-                 }) => {
+                ex_flow_service_endpoint,
+                client_id,
+                port_number,
+                apm_connection_string,
+            }) => {
                 info!("Run with Web Server mode");
                 info!("ExFlow Runtime starting....");
                 // Setup global apm (application performance monitoring)
@@ -157,10 +157,10 @@ impl ExFlowRuntimeArgs {
                                 ),
                         )
                 })
-                    .workers(10)
-                    .bind(("0.0.0.0", *port_number))?
-                    .run()
-                    .await
+                .workers(10)
+                .bind(("0.0.0.0", *port_number))?
+                .run()
+                .await
             }
         }
     }

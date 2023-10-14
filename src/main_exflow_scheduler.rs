@@ -1,11 +1,11 @@
-use actix_web::web;
-use clokwerk::{Job, TimeUnits};
-use log::{debug, error, info};
-use sqlx::{Error, MySql, Pool};
-use sqlx::mysql::MySqlPoolOptions;
 use crate::mod_cores::errors::ExFlowError;
 use crate::mod_db::db_exflow_runtime::get_register_runtime_list;
 use crate::mod_db::entities::TblExFlowRuntimeClients;
+use actix_web::web;
+use clokwerk::{Job, TimeUnits};
+use log::{debug, error, info};
+use sqlx::mysql::MySqlPoolOptions;
+use sqlx::{Error, MySql, Pool};
 
 use crate::mod_runtime::entities::PipelineRunRequest;
 
@@ -53,12 +53,11 @@ async fn main() {
         .await;
     match pool {
         Ok(p) => {
-            let r =
-                get_register_runtime_list(web::Data::new(p.clone())).await;
+            let r = get_register_runtime_list(web::Data::new(p.clone())).await;
             match r {
                 Ok(l) => {
                     for item in l.iter() {
-                        debug!("{:#?}" ,item);
+                        debug!("{:#?}", item);
                     }
                 }
                 Err(e) => {

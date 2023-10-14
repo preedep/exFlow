@@ -55,7 +55,7 @@ impl ExFlowRuntimeADFActivityExecutor {
 
 #[async_trait]
 impl ExFlowRuntimeActivityExecutor<ExFlowRuntimeActivityADFParam>
-for ExFlowRuntimeADFActivityExecutor
+    for ExFlowRuntimeADFActivityExecutor
 {
     type ItemResult = (ExFlowRuntimeActivityResult, JoinHandle<()>);
     async fn run(
@@ -72,7 +72,7 @@ for ExFlowRuntimeADFActivityExecutor
                 info!("{:#?}", response);
             })),
         )
-            .await;
+        .await;
 
         result.map(|r| {
             let result = ExFlowRuntimeActivityResult { run_id: r.run_id };
@@ -104,7 +104,7 @@ async fn adf_run_process(
         factory_name.as_str(),
         pipeline_name.as_str(),
     )
-        .await;
+    .await;
 
     match res_run {
         Ok(res) => {

@@ -18,24 +18,24 @@ pub async fn register_exflow_runtime(
                         updated_dt = CURRENT_TIMESTAMP()
              "#,
     )
-        .bind(&tbl.client_id)
-        .bind(&tbl.host_name)
-        .bind(&tbl.host_ip)
-        .bind(&tbl.host_name)
-        .bind(&tbl.host_ip)
-        .execute(pool.get_ref())
-        .await;
+    .bind(&tbl.client_id)
+    .bind(&tbl.host_name)
+    .bind(&tbl.host_ip)
+    .bind(&tbl.host_name)
+    .bind(&tbl.host_ip)
+    .execute(pool.get_ref())
+    .await;
     res.map(|r| {
         debug!("post_register_runtime : {:#?}", r);
         r.rows_affected()
     })
-        .map_err(|e| {
-            error!("Insert failed with error {:?}", e);
-            let e = e.as_database_error().map(|err| err.message());
-            let mut msg = String::new();
-            msg.push_str(e.unwrap_or(""));
-            ExFlowError::new_string(msg)
-        })
+    .map_err(|e| {
+        error!("Insert failed with error {:?}", e);
+        let e = e.as_database_error().map(|err| err.message());
+        let mut msg = String::new();
+        msg.push_str(e.unwrap_or(""));
+        ExFlowError::new_string(msg)
+    })
 }
 
 pub async fn get_register_runtime_list(
@@ -46,8 +46,8 @@ pub async fn get_register_runtime_list(
         select * from tbl_exflow_runtime_clients
     "#,
     )
-        .fetch_all(pool.as_ref())
-        .await;
+    .fetch_all(pool.as_ref())
+    .await;
     res.map_err(|e| {
         error!("Get List of runtime clients failed with error {:?}", e);
         let e = e.as_database_error().map(|err| err.message());

@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 
-use actix_web::{error, HttpResponse};
 use actix_web::body::BoxBody;
+use actix_web::{error, HttpResponse};
 use derive_more::Error;
 use serde::{Deserialize, Serialize};
 
