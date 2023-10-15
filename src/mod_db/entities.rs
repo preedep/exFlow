@@ -36,16 +36,16 @@ impl From<ExFlowRuntimeRegisterRequest> for TblExFlowRuntimeClients {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TblExFlowApps {}
 
-#[derive(Debug, Clone,FromRow, Serialize, Deserialize)]
+#[derive(Debug, Clone, FromRow, Serialize, Deserialize)]
 pub struct TblExFlowJobs {
     #[serde(rename = "app_id")]
-    pub app_id : String,
+    pub app_id: String,
     #[serde(rename = "job_id")]
-    pub job_id : String,
+    pub job_id: String,
     #[serde(rename = "cron_exp_seconds")]
     pub cron_exp_seconds: String,
     #[serde(rename = "cron_exp_minutes")]
-    pub cron_exp_minutes:String,
+    pub cron_exp_minutes: String,
     #[serde(rename = "cron_exp_hours")]
     pub cron_exp_hours: String,
     #[serde(rename = "cron_exp_day_of_month")]
