@@ -51,6 +51,8 @@ async fn main() {
         .max_connections(10)
         .connect("mssql://exflow_user:P@ssw0rd@localhost:3306/exFlowDb")
         .await;
+
+    /*
     match pool {
         Ok(p) => {
             let r = get_register_runtime_list(web::Data::new(p.clone())).await;
@@ -68,5 +70,6 @@ async fn main() {
         Err(e) => {
             error!("Error {:?}", e);
         }
-    }
+    }*/
+
 }
