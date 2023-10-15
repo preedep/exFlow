@@ -36,8 +36,33 @@ impl From<ExFlowRuntimeRegisterRequest> for TblExFlowRuntimeClients {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TblExFlowApps {}
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TblExFlowJobs {}
+#[derive(Debug, Clone,FromRow, Serialize, Deserialize)]
+pub struct TblExFlowJobs {
+    #[serde(rename = "app_id")]
+    pub app_id : String,
+    #[serde(rename = "job_id")]
+    pub job_id : String,
+    #[serde(rename = "cron_exp_seconds")]
+    pub cron_exp_seconds: String,
+    #[serde(rename = "cron_exp_minutes")]
+    pub cron_exp_minutes:String,
+    #[serde(rename = "cron_exp_hours")]
+    pub cron_exp_hours: String,
+    #[serde(rename = "cron_exp_day_of_month")]
+    pub cron_exp_day_of_month: String,
+    #[serde(rename = "cron_exp_month")]
+    pub cron_exp_month: String,
+    #[serde(rename = "cron_exp_day_of_week")]
+    pub cron_exp_day_of_week: String,
+    #[serde(rename = "cron_exp_year")]
+    pub cron_exp_year: Option<String>,
+    #[serde(rename = "created_dt")]
+    pub created_dt: Option<chrono::NaiveDateTime>,
+    #[serde(rename = "updated_dt")]
+    pub updated_dt: Option<chrono::NaiveDateTime>,
+    #[serde(rename = "updated_by")]
+    pub updated_by: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TblExFlowClientIDs {}
